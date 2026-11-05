@@ -1,0 +1,37 @@
+{
+  "description": "Representative prompts used to test application handling. Mocked responses are not evidence of real-model quality.",
+  "cases": [
+    {
+      "id": "debug-vague",
+      "category": "debug",
+      "input": "fix login it breaks on refresh",
+      "illustrativeStatus": "rewritten",
+      "illustrativeRewrite": "Investigate the login failure after a page refresh. Identify the root cause, implement a focused fix, and verify that the expected login state is preserved."
+    },
+    {
+      "id": "already-effective-implementation",
+      "category": "implement_feature",
+      "input": "Add a loading spinner to the Submit button while the existing request is in progress.",
+      "illustrativeStatus": "unchanged"
+    },
+    {
+      "id": "explanation",
+      "category": "explain",
+      "input": "Explain how authentication and token refresh work in this project.",
+      "illustrativeStatus": "unchanged"
+    },
+    {
+      "id": "explicit-constraint",
+      "category": "implement_feature",
+      "input": "Update src/auth/session.ts without changing the public API. Keep compatibility with Node 22.",
+      "mustPreserve": ["src/auth/session.ts", "public API", "Node 22"]
+    },
+    {
+      "id": "user-decision",
+      "category": "implement_feature",
+      "input": "Implement user deletion, but I haven't decided whether it should be permanent or reversible.",
+      "illustrativeStatus": "needs_clarification",
+      "illustrativeQuestion": "Should user deletion be permanent or reversible?"
+    }
+  ]
+}
