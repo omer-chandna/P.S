@@ -17,7 +17,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.90.0
       - uses: Swatinem/rust-cache@v2
       - run: npm ci
-      - run: npm run tauri -- build --bundles dmg --target aarch64-apple-darwin
+      - name: Build unsigned DMG
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if npm run tauri -- build --bundles dmg --target aarch64-apple-darwin; then
+              exit 0
+            fi
+            echo "DMG attempt ${attempt} failed; waiting for hdiutil"
+            sleep 20
+          done
+          exit 1
       - uses: actions/upload-artifact@v4
         with:
           name: macos-dmg

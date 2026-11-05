@@ -1,5 +1,6 @@
 #![cfg_attr(not(any(target_os = "macos", target_os = "windows")), allow(dead_code))]
 
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 mod unsupported;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -34,6 +35,7 @@ pub struct ClipboardBackup {
 pub enum PermissionState {
     Granted,
     Missing,
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     Unsupported,
 }
 
