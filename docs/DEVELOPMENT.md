@@ -1,30 +1,30 @@
 # Development log
 
-P.S. is built as a shared Rust core plus a Tauri desktop shell. Linux is a development host for the core and the interface. Supported products are Apple Silicon macOS 14+ and Windows 11 x64.
+P.S. is a Tauri desktop app with a shared Rust core. Supported products are Apple Silicon macOS 14+ and Windows 11 x64. Linux is only a development host.
 
 ## How to resume
 
-1. Read this file and `docs/ARCHITECTURE.md`.
+1. Read this file, `docs/ARCHITECTURE.md`, and `docs/TESTING.md`.
 2. Run `cargo test -p ps-core` and `npm test`.
-3. Continue from the first unchecked roadmap item.
-4. Do not download or rank real Ollama models in cloud CI. Mock the API.
+3. Continue from the first unchecked item below.
+4. Do not download or rank real Ollama models in CI.
 
 ## Roadmap
 
 ### Phase 1 — Repository foundation
 
-- [x] Rust workspace and `ps-core` crate
+- [x] Rust workspace and `ps-core`
 - [x] Versioned prompt resources
-- [ ] Tauri v2 shell, React, TypeScript, Tailwind, shadcn-style components
-- [ ] Settings persistence
-- [ ] Frontend lint, typecheck, and tests
-- [ ] GitHub Actions
+- [x] Tauri v2 shell, React, TypeScript, Tailwind, shadcn-style components
+- [x] Settings persistence through the Tauri store
+- [x] Frontend lint, typecheck, and tests
+- [x] GitHub Actions for checks and unsigned installers
 
 ### Phase 2 — Ollama engine
 
 - [x] Loopback-only endpoint checks
 - [x] Model discovery and cloud-model rejection
-- [x] Chat, show, pull progress, and delete clients
+- [x] Chat, show, pull progress, and delete
 - [x] Timeouts, cancellation, and malformed responses
 - [x] Mocked HTTP tests
 
@@ -39,73 +39,88 @@ P.S. is built as a shared Rust core plus a Tauri desktop shell. Linux is a devel
 
 ### Phase 4 — Model manager
 
-- [x] Presets and conservative hardware suggestions in the core
-- [ ] Model manager UI, downloads, activation, deletion, and manual test workspace
+- [x] Presets and conservative hardware suggestions
+- [x] Model manager UI, user-started downloads, activation, deletion
+- [x] Manual test workspace with status, duration, and token counts
 
 ### Phase 5 — Selection and replacement
 
 - [x] Clipboard sentinel rules and delivery planner
-- [ ] macOS and Windows capture, focus checks, and paste
-- [ ] No paste for unchanged or clarification results
+- [x] macOS and Windows capture, focus checks, and paste
+- [x] No paste for unchanged or clarification results
+- [ ] Native verification on macOS and Windows hardware
 
 ### Phase 6 — Global shortcuts
 
-- [x] Accelerator parsing and conflict detection
-- [ ] Registration, customization, pause, and single-flight optimization
+- [x] Accelerator parsing, conflict detection, registration, pause
+- [x] Single-flight optimization and cancellation
+- [ ] Confirm registration against a real OS shortcut conflict
 
 ### Phase 7 — Background app
 
-- [ ] macOS menu bar and Windows tray
-- [ ] Hide on close, launch at startup, notifications
+- [x] Menu bar and tray actions
+- [x] Hide on close, launch at startup, notifications
+- [ ] Confirm the macOS accessory policy and Windows foreground-lock behaviour
 
 ### Phase 8 — Interface and onboarding
 
-- [ ] Home, Models, Settings, About
-- [ ] Onboarding
-- [ ] Themes and preview-before-replace
+- [x] Home, Models, Settings, About
+- [x] Onboarding, themes, preview-before-replace
+- [x] Browser pass of the production bundle
 
 ### Phase 9 — Verification
 
-- [x] Core automated tests on Linux
-- [ ] Frontend tests
-- [ ] Native GUI checks documented for a local machine
+- [x] Core automated tests
+- [x] Frontend tests and production bundle
+- [ ] Manual GUI matrix in `docs/TESTING.md`
 
 ### Phase 10 — Packaging
 
-- [ ] macOS ARM64 DMG workflow
-- [ ] Windows 11 installer workflow
-- [ ] Signing and notarization notes
+- [x] Workflow for an Apple Silicon DMG and a Windows NSIS installer
+- [x] First CI compile produced `PS_0.1.0_aarch64.dmg` and `PS_0.1.0_x64-setup.exe`
+- [x] Artifact upload succeeded: https://github.com/omer-chandna/P.S/actions/runs/42091645375
+- [ ] Signed and notarized release
 
 ### Phase 11 — Stabilization
 
-- [ ] Review after the shell is in place
-- [ ] Release candidate notes
+- [x] Core and shell separated; clippy clean on the Linux host
+- [ ] Fix anything the first macOS and Windows CI builds report
+- [ ] Release candidate after the manual matrix
 
 ## Decisions
 
 | Decision | Why |
 | --- | --- |
-| Core crate separate from Tauri | The optimizer must be testable without WebKit, and a future CLI can reuse it |
-| Tauri v2, not Tauri 3 | Tauri 3 is still alpha. v2 matches the product requirement |
-| Rust 1.90 | Matches the Tauri 2.12 minimum |
-| No Linux product target | Capture and installers are macOS and Windows. Linux can still run unit tests |
-| No bundled models and no cloud inference | Downloads are explicit. Endpoints must be loopback |
-| Heuristic preservation, then preview | Fluent but lossy rewrites are not pasted automatically |
+| Core crate separate from Tauri | Tests and a future CLI should not need WebKit |
+| Tauri 2.12, Rust 1.90 | Matches the current stable Tauri 2 line. Tauri 3 is still alpha |
 | Binary name `postscript` | A binary named `ps` would collide with the Unix process tool |
+| Product name `PS` | Avoids a period in installer paths. The interface still says P.S. |
+| Loopback endpoints only | Stops the app being pointed at a remote inference service |
+| Heuristic preservation, then preview | A fluent rewrite that drops a path or version is not pasted |
+| No model benchmark | Quality is compared by hand in Test Model |
 
-## Test status
+## Latest local test status
 
-`cargo test -p ps-core` covers templates, parsing, preservation, delivery, shortcuts, hardware suggestions, and a mocked Ollama server. Record the latest run in the commit that changes tests. Frontend and native shells are not covered yet.
+Recorded while implementing the shell:
+
+- `cargo test -p ps-core` passed (37 unit tests and the mocked HTTP suite).
+- `cargo test -p ps-desktop --lib` passed (clipboard sentinel tests).
+- `cargo clippy -p ps-core -p ps-desktop --all-targets -- -D warnings` passed on Linux.
+- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` passed.
+- Windows cross-compilation from Linux failed inside the `ring` crate build script before P.S. code was typechecked. That is an environment limit, not a test result.
 
 ## Pull requests
 
-None yet. Branches use the `cursor/<topic>-500d` prefix required by this workspace.
+- Core engine branch: `cursor/ps-core-engine-500d`
+- Desktop shell branch: `cursor/ps-desktop-shell-500d`, based on the core branch
+
+The shell pull request should be reviewed against the core branch so its diff is the app, not the engine again.
 
 ## Blockers
 
-- Native paste, accessibility prompts, and installers cannot be executed in this Linux cloud environment. Implement them and document the manual pass.
+- No Apple Silicon or Windows runner is available inside this cloud session, so installers were not produced here.
 - Real model quality is intentionally not measured here.
 
 ## Next action
 
-Build the Tauri shell, model manager, shortcut registration, and platform capture/replacement on top of `ps-core`.
+Run the manual matrix in `docs/TESTING.md` on Apple Silicon macOS and Windows 11. Unsigned installers are attached to the green CI run.
