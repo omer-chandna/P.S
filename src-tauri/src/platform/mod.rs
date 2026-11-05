@@ -35,7 +35,8 @@ pub struct ClipboardBackup {
 pub enum PermissionState {
     Granted,
     Missing,
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    /// Used when capture is not implemented for the host.
+    #[allow(dead_code)]
     Unsupported,
 }
 
