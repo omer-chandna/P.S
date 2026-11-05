@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --ps-bg: #f4f2ec;
+  --ps-surface: #fffcf7;
+  --ps-surface-2: #efece4;
+  --ps-ink: #1d1c19;
+  --ps-muted: #6f6a62;
+  --ps-line: #e3ded3;
+  --ps-accent: #8d5a2b;
+  --ps-accent-soft: #f3e6d4;
+  --ps-ok: #246348;
+  --ps-warn: #8a5a12;
+  --ps-danger: #8c3b32;
+  color-scheme: light;
+}
+
+.dark {
+  --ps-bg: #101114;
+  --ps-surface: #17191d;
+  --ps-surface-2: #21242a;
+  --ps-ink: #f4f1ea;
+  --ps-muted: #aaa49a;
+  --ps-line: #2d3138;
+  --ps-accent: #e2b484;
+  --ps-accent-soft: #3a2d22;
+  --ps-ok: #9dceb6;
+  --ps-warn: #e4c48a;
+  --ps-danger: #efaaa2;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-bg: var(--ps-bg);
+  --color-surface: var(--ps-surface);
+  --color-surface-2: var(--ps-surface-2);
+  --color-ink: var(--ps-ink);
+  --color-muted: var(--ps-muted);
+  --color-line: var(--ps-line);
+  --color-accent: var(--ps-accent);
+  --color-accent-soft: var(--ps-accent-soft);
+  --color-ok: var(--ps-ok);
+  --color-warn: var(--ps-warn);
+  --color-danger: var(--ps-danger);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ps-bg);
+  color: var(--ps-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: -0.011em;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--ps-accent) 35%, transparent);
+}
