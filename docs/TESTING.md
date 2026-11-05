@@ -25,7 +25,7 @@ On the Linux development host:
 - `cargo clippy` passed for `ps-core` and `ps-desktop` on the host target.
 - Frontend lint, typecheck, Vitest, and the production Vite build passed.
 - `cargo check -p ps-desktop` passed for the Linux host. Capture calls return the unsupported-platform error there.
-- A Windows cross-check from Linux stopped in the `ring` build script before application code was typechecked. macOS and Windows shells still need their CI runners, which have the platform SDKs.
+- The first GitHub Actions run compiled and bundled both targets: `PS_0.1.0_aarch64.dmg` (6.78 MiB) and `PS_0.1.0_x64-setup.exe` (4.49 MiB). The upload step looked in `src-tauri/target` instead of the workspace `target` directory. That path is corrected. Installing those bundles and using them in other applications is still unverified.
 
 The interface was exercised in a browser preview of the production bundle: onboarding, home, models, settings, and about. That preview cannot register a global shortcut or paste into another application.
 

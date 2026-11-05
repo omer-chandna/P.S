@@ -11,7 +11,7 @@ npm install
 npm run tauri build -- --bundles dmg --target aarch64-apple-darwin
 ```
 
-The DMG is under `src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/`.
+The DMG is under `target/aarch64-apple-darwin/release/bundle/dmg/`. The workspace target directory is at the repository root, not inside `src-tauri`.
 
 From Windows 11 x64:
 
@@ -20,7 +20,7 @@ npm install
 npm run tauri build -- --bundles nsis
 ```
 
-The installer is under `src-tauri/target/release/bundle/nsis/`. It installs for the current user and includes an uninstaller.
+The installer is under `target/x86_64-pc-windows-msvc/release/bundle/nsis/`. It installs for the current user and includes an uninstaller.
 
 Do not build a universal macOS binary. The bundle identifier is `app.postscript.ps`. The minimum macOS version in `tauri.conf.json` is 14.0.
 

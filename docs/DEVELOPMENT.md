@@ -77,7 +77,8 @@ P.S. is a Tauri desktop app with a shared Rust core. Supported products are Appl
 ### Phase 10 — Packaging
 
 - [x] Workflow for an Apple Silicon DMG and a Windows NSIS installer
-- [ ] A green run of those workflows on GitHub-hosted runners
+- [x] First CI compile produced `PS_0.1.0_aarch64.dmg` and `PS_0.1.0_x64-setup.exe`
+- [ ] Artifact upload path corrected after that run; confirm the next CI upload
 - [ ] Signed and notarized release
 
 ### Phase 11 — Stabilization
@@ -122,4 +123,4 @@ The shell pull request should be reviewed against the core branch so its diff is
 
 ## Next action
 
-Watch the first macOS and Windows CI builds, fix compile or bundling failures, then run the manual matrix in `docs/TESTING.md` on both operating systems.
+Confirm the corrected artifact upload on the next CI run, then run the manual matrix in `docs/TESTING.md` on Apple Silicon macOS and Windows 11.
