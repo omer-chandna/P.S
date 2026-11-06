@@ -8,7 +8,7 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 
 ![P.S. main window, with the manual optimizer and an empty result](docs/images/home.png)
 
-**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Run it from source](#install) on Apple Silicon macOS or Windows 11.
+**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Install it from source](docs/INSTALL.md) on Apple Silicon macOS or Windows 11.
 
 ## Contents
 
@@ -18,7 +18,7 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 - [Set up](#set-up)
 - [Privacy](#privacy)
 - [Repository](#repository)
-- [Forks](#forks)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Use it
@@ -62,7 +62,7 @@ Intel Macs and Windows 10 are outside the desktop target.
 
 ## Install
 
-Clone the repository and start the desktop app:
+Install P.S. from this repository. Version 0.1.0 is a build you run yourself. On Apple Silicon macOS or Windows 11:
 
 ```bash
 git clone https://github.com/omer-chandna/P.S.git
@@ -71,32 +71,9 @@ npm install
 npm run tauri dev
 ```
 
-You need Node.js 22 and Rust 1.90. On a Mac, install the Xcode command line tools. On Windows 11, install the Visual Studio C++ build tools and the WebView2 runtime. The first launch is the setup guide. Closing the window hides P.S. Quit from the menu bar or the tray.
+You need Git, Node.js 22, and Rust 1.90. A Mac also needs the Xcode command line tools. Windows 11 also needs the Visual Studio C++ build tools and the WebView2 runtime. The first window walks through Ollama, a model, and the shortcut. Closing the window hides P.S. Quit from the menu bar or the tray.
 
-The core tests stand in for Ollama with a local mock. They leave installed models alone, and the Ollama daemon can stay stopped.
-
-```bash
-cargo test -p ps-core
-npm test
-```
-
-To check a checkout:
-
-```bash
-cargo fmt --all --check
-cargo clippy -p ps-core --all-targets -- -D warnings
-cargo test -p ps-core
-npm run lint
-npm run typecheck
-npm test
-```
-
-Unsigned installers, from a Mac or a Windows machine:
-
-```bash
-npm run tauri build -- --bundles dmg --target aarch64-apple-darwin
-npm run tauri build -- --bundles nsis --target x86_64-pc-windows-msvc
-```
+The [install guide](docs/INSTALL.md) is the full procedure: those tools, macOS Accessibility, the unsigned DMG and Windows installer, updates, and the checks for a checkout.
 
 ## Set up
 
@@ -132,11 +109,12 @@ Inference stays on your machine. There is no account and no subscription. Select
 | [`prompts/`](prompts/README.md) | System instructions, version 1.0.0. The selected prompt is a separate user message. |
 | [`fixtures/prompts.json`](fixtures/prompts.json) | Representative cases. Tests replay mocked model output against them. |
 | [`docs/PROMPT_ENGINE.md`](docs/PROMPT_ENGINE.md) | What counts as a better prompt, and what the model is told. |
+| [`docs/INSTALL.md`](docs/INSTALL.md) | Tools, a source run, permissions, and unsigned installers. |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | Installers, signing, and notarization. |
 
 Signing and notarization are not set up. The build produces unsigned installers.
 
-## Forks
+## Contributing
 
 P.S. is open source so you can keep your own copy. Fork the repository, change it, and build from that fork. The [MIT license](#license) covers that copy, including one you maintain and ship yourself.
 
@@ -150,7 +128,7 @@ A pull request that gets merged keeps these boundaries:
 - The shipped app is Apple Silicon macOS and Windows 11. Linux builds and tests the core.
 - The packaged binary name is `postscript`, so it stays clear of the Unix `ps` process tool.
 
-Branch from `main` and note what you ran, including the checks under [Install](#install). When a report quotes a real prompt, use a stand-in sentence if the original contains private code.
+Branch from `main` and note what you ran, including the checks in the [install guide](docs/INSTALL.md#confirm-a-checkout). When a report quotes a real prompt, use a stand-in sentence if the original contains private code.
 
 ## License
 

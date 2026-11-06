@@ -1,5 +1,5 @@
-# Forks
+# Contributing
 
-P.S. is open source so you can fork it and maintain your own version. The note in the [README](README.md#forks) is the policy.
+P.S. is open source so you can fork it and maintain your own version. The note in the [README](README.md#contributing) is the policy. The [install guide](docs/INSTALL.md) is how to build a checkout.
 
 Write access on this repository stays with the maintainer. Other people cannot push here. A pull request is the way to propose a change, and it is merged when the maintainer approves it.
