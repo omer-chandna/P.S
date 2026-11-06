@@ -8,7 +8,7 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 
 ![P.S. main window, with the manual optimizer and an empty result](docs/images/home.png)
 
-**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Run it from source](#install) on Apple Silicon macOS or Windows 11.
+**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Install it from source](#install) on Apple Silicon macOS or Windows 11.
 
 ## Contents
 
@@ -55,14 +55,14 @@ That is the behaviour P.S. is built for. It is not a promise that every model wi
 | | |
 | --- | --- |
 | Desktop app | macOS 14 Sonoma or newer on Apple Silicon, or Windows 11 x64 |
-| This repository | Rust 1.90. With [rustup](https://rustup.rs), `rust-toolchain.toml` selects the compiler, rustfmt, and clippy. Linux is a supported host for building and testing the core. |
+| Tools | [Git](https://git-scm.com), [Node.js](https://nodejs.org) 22, and [Rust](https://rustup.rs) 1.90. With rustup, `rust-toolchain.toml` selects the compiler. |
+| macOS | Xcode command line tools (`xcode-select --install`) |
+| Windows | Visual Studio C++ build tools and the WebView2 runtime |
 | Models | [Ollama](https://ollama.com/download) on the same computer |
 
-Intel Macs and Windows 10 are outside the desktop target.
+Intel Macs and Windows 10 are outside the desktop target. Linux can build and test the core.
 
 ## Install
-
-Clone the repository and start the desktop app:
 
 ```bash
 git clone https://github.com/omer-chandna/P.S.git
@@ -71,32 +71,7 @@ npm install
 npm run tauri dev
 ```
 
-You need Node.js 22 and Rust 1.90. On a Mac, install the Xcode command line tools. On Windows 11, install the Visual Studio C++ build tools and the WebView2 runtime. The first launch is the setup guide. Closing the window hides P.S. Quit from the menu bar or the tray.
-
-The core tests stand in for Ollama with a local mock. They leave installed models alone, and the Ollama daemon can stay stopped.
-
-```bash
-cargo test -p ps-core
-npm test
-```
-
-Before a pull request:
-
-```bash
-cargo fmt --all --check
-cargo clippy -p ps-core --all-targets -- -D warnings
-cargo test -p ps-core
-npm run lint
-npm run typecheck
-npm test
-```
-
-Unsigned installers, from a Mac or a Windows machine:
-
-```bash
-npm run tauri build -- --bundles dmg --target aarch64-apple-darwin
-npm run tauri build -- --bundles nsis --target x86_64-pc-windows-msvc
-```
+The first window walks through Ollama, a model, and the shortcut. Closing the window hides P.S. Quit from the menu bar or the tray.
 
 ## Set up
 
@@ -138,27 +113,19 @@ Signing and notarization are not set up. The build produces unsigned installers.
 
 ## Contributing
 
-Issues and pull requests are welcome on [GitHub](https://github.com/omer-chandna/P.S).
+P.S. is open source so you can keep your own copy. Fork the repository, change it, and build from that fork. The [MIT license](#license) covers that copy, including one you maintain and ship yourself.
 
-1. Branch from `main`.
-2. Keep each commit to one behaviour. Subjects in this project use a conventional prefix: `feat:`, `fix:`, `test:`, `docs:`, or `ci:`.
-3. Run the checks in [Install](#install). In the pull request, list the commands you ran. When a macOS or Windows pass is still manual, say that too.
+Write access to this repository stays with the maintainer. Other people cannot push to it. A change is considered here only as a pull request, and it is merged when the maintainer approves it. Opening one is optional.
 
-A few decisions are the product:
+A pull request that gets merged keeps these boundaries:
 
 - The Ollama address stays on loopback.
 - Each optimization is one chat request. The model classifies and rewrites in that same call.
 - Prompt text stays out of logs and off disk.
-- Linux builds and tests the core. The shipped app is Apple Silicon macOS and Windows 11.
+- The shipped app is Apple Silicon macOS and Windows 11. Linux builds and tests the core.
 - The packaged binary name is `postscript`, so it stays clear of the Unix `ps` process tool.
 
-### Changing the prompts
-
-Edit `prompts/shared.md`, `prompts/improve.md`, and `prompts/compact.md` together. Bump `ps-prompt-version` in each file in the same commit, and describe the behaviour change in `docs/PROMPT_ENGINE.md`. The selected text stays in the user message.
-
-When parsing, preservation, or delivery changes, extend the core tests or `fixtures/prompts.json`. Keep automated runs on mocked responses. Comparing live models stays a manual pass, written up with the change that ran it.
-
-GitHub issues are public. When the original prompt contains private code, describe the behaviour with a stand-in sentence.
+Branch from `main` and note what you ran. The project checks are in [Testing](docs/TESTING.md). When a report quotes a real prompt, use a stand-in sentence if the original contains private code.
 
 ## License
 
