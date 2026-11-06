@@ -18,7 +18,7 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 - [Set up](#set-up)
 - [Privacy](#privacy)
 - [Repository](#repository)
-- [Contributing](#contributing)
+- [Forks](#forks)
 - [License](#license)
 
 ## Use it
@@ -80,7 +80,7 @@ cargo test -p ps-core
 npm test
 ```
 
-Before a pull request:
+To check a checkout:
 
 ```bash
 cargo fmt --all --check
@@ -136,29 +136,21 @@ Inference stays on your machine. There is no account and no subscription. Select
 
 Signing and notarization are not set up. The build produces unsigned installers.
 
-## Contributing
+## Forks
 
-Issues and pull requests are welcome on [GitHub](https://github.com/omer-chandna/P.S).
+P.S. is open source so you can keep your own copy. Fork the repository, change it, and build from that fork. The [MIT license](#license) covers that copy, including one you maintain and ship yourself.
 
-1. Branch from `main`.
-2. Keep each commit to one behaviour. Subjects in this project use a conventional prefix: `feat:`, `fix:`, `test:`, `docs:`, or `ci:`.
-3. Run the checks in [Install](#install). In the pull request, list the commands you ran. When a macOS or Windows pass is still manual, say that too.
+Write access to this repository stays with the maintainer. Other people cannot push to it. A change is considered here only as a pull request, and it is merged when the maintainer approves it. Opening one is optional.
 
-A few decisions are the product:
+A pull request that gets merged keeps these boundaries:
 
 - The Ollama address stays on loopback.
 - Each optimization is one chat request. The model classifies and rewrites in that same call.
 - Prompt text stays out of logs and off disk.
-- Linux builds and tests the core. The shipped app is Apple Silicon macOS and Windows 11.
+- The shipped app is Apple Silicon macOS and Windows 11. Linux builds and tests the core.
 - The packaged binary name is `postscript`, so it stays clear of the Unix `ps` process tool.
 
-### Changing the prompts
-
-Edit `prompts/shared.md`, `prompts/improve.md`, and `prompts/compact.md` together. Bump `ps-prompt-version` in each file in the same commit, and describe the behaviour change in `docs/PROMPT_ENGINE.md`. The selected text stays in the user message.
-
-When parsing, preservation, or delivery changes, extend the core tests or `fixtures/prompts.json`. Keep automated runs on mocked responses. Comparing live models stays a manual pass, written up with the change that ran it.
-
-GitHub issues are public. When the original prompt contains private code, describe the behaviour with a stand-in sentence.
+Branch from `main` and note what you ran, including the checks under [Install](#install). When a report quotes a real prompt, use a stand-in sentence if the original contains private code.
 
 ## License
 
