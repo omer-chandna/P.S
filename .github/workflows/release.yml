@@ -7,7 +7,9 @@ on:
 jobs:
   macos:
     name: macOS ARM64 DMG
-    runs-on: macos-14
+    runs-on: macos-15
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "14.0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
