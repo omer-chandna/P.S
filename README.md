@@ -8,7 +8,7 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 
 ![P.S. main window, with the manual optimizer and an empty result](docs/images/home.png)
 
-**Version 0.1.0.** This repository is the optimizer, [`crates/ps-core`](crates/ps-core). The menu-bar and tray application is the product those rules are written for. The shell, and the installers that go with it, land in a later change. Until then, [build the core from source](#install).
+**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Run it from source](#install) on Apple Silicon macOS or Windows 11.
 
 ## Contents
 
@@ -62,15 +62,23 @@ Intel Macs and Windows 10 are outside the desktop target.
 
 ## Install
 
-Clone the repository and run the core. Installers for the desktop app come with the shell.
+Clone the repository and start the desktop app:
 
 ```bash
 git clone https://github.com/omer-chandna/P.S.git
 cd P.S
-cargo test -p ps-core
+npm install
+npm run tauri dev
 ```
 
-The tests stand in for Ollama with a local mock. They leave installed models alone, and the Ollama daemon can stay stopped.
+You need Node.js 22 and Rust 1.90. On a Mac, install the Xcode command line tools. On Windows 11, install the Visual Studio C++ build tools and the WebView2 runtime. The first launch is the setup guide. Closing the window hides P.S. Quit from the menu bar or the tray.
+
+The core tests stand in for Ollama with a local mock. They leave installed models alone, and the Ollama daemon can stay stopped.
+
+```bash
+cargo test -p ps-core
+npm test
+```
 
 Before a pull request:
 
@@ -78,6 +86,16 @@ Before a pull request:
 cargo fmt --all --check
 cargo clippy -p ps-core --all-targets -- -D warnings
 cargo test -p ps-core
+npm run lint
+npm run typecheck
+npm test
+```
+
+Unsigned installers, from a Mac or a Windows machine:
+
+```bash
+npm run tauri build -- --bundles dmg --target aarch64-apple-darwin
+npm run tauri build -- --bundles nsis --target x86_64-pc-windows-msvc
 ```
 
 ## Set up
@@ -109,11 +127,14 @@ Inference stays on your machine. There is no account and no subscription. Select
 | Path | Role |
 | --- | --- |
 | [`crates/ps-core`](crates/ps-core) | Endpoint checks, the Ollama client, optimization, preservation, shortcuts, and settings. The window, global hotkeys, and clipboard I/O stay outside this crate, so a later CLI can share the rules. |
+| [`src-tauri/`](src-tauri) | Menu bar, tray, global shortcuts, capture, and paste. |
+| [`src/`](src) | The window: home, models, settings, onboarding. |
 | [`prompts/`](prompts/README.md) | System instructions, version 1.0.0. The selected prompt is a separate user message. |
 | [`fixtures/prompts.json`](fixtures/prompts.json) | Representative cases. Tests replay mocked model output against them. |
 | [`docs/PROMPT_ENGINE.md`](docs/PROMPT_ENGINE.md) | What counts as a better prompt, and what the model is told. |
+| [`docs/RELEASING.md`](docs/RELEASING.md) | Installers, signing, and notarization. |
 
-The next layer is the Tauri shell: menu bar and tray, onboarding, settings on disk, global shortcuts, capture and paste on macOS and Windows, then installers, signing, and notarization.
+Signing and notarization are not set up. The build produces unsigned installers.
 
 ## Contributing
 
@@ -121,7 +142,7 @@ Issues and pull requests are welcome on [GitHub](https://github.com/omer-chandna
 
 1. Branch from `main`.
 2. Keep each commit to one behaviour. Subjects in this project use a conventional prefix: `feat:`, `fix:`, `test:`, `docs:`, or `ci:`.
-3. Run the three checks in [Install](#install). In the pull request, list the commands you ran. When a macOS or Windows pass is still manual, say that too.
+3. Run the checks in [Install](#install). In the pull request, list the commands you ran. When a macOS or Windows pass is still manual, say that too.
 
 A few decisions are the product:
 

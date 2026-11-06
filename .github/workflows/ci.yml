@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  core:
+    name: Rust core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.90.0
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt -p ps-core --all -- --check
+      - name: Clippy
+        run: cargo clippy -p ps-core --all-targets -- -D warnings
+      - name: Test
+        run: cargo test -p ps-core
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  macos:
+    name: macOS ARM64 DMG
+    # GitHub retired the macos-14 runner on 2 November 2026.
+    # macos-15 is still Apple Silicon. MACOSX_DEPLOYMENT_TARGET keeps the
+    # binary loadable on macOS 14, which is the app's minimum.
+    runs-on: macos-15
+    needs: [core, frontend]
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "14.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@1.90.0
+      - uses: Swatinem/rust-cache@v2
+      - run: npm ci
+      - name: Build unsigned DMG
+        run: |
+          set -euo pipefail
+          # hdiutil intermittently returns "Resource busy" on GitHub macOS runners.
+          for attempt in 1 2 3; do
+            if npm run tauri -- build --bundles dmg --target aarch64-apple-darwin; then
+              exit 0
+            fi
+            echo "DMG attempt ${attempt} failed; waiting for hdiutil"
+            sleep 20
+          done
+          exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ps-macos-arm64-dmg
+          path: target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
+  windows:
+    name: Windows 11 installer
+    runs-on: windows-latest
+    needs: [core, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@1.90.0
+      - uses: Swatinem/rust-cache@v2
+      - run: npm ci
+      - name: Build unsigned installer
+        run: npm run tauri -- build --bundles nsis --target x86_64-pc-windows-msvc
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ps-windows-x64-installer
+          path: target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          if-no-files-found: error
