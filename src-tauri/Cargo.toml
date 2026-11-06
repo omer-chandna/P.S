@@ -48,6 +48,11 @@ windows = { version = "0.61", features = [
     "Win32_System_Threading",
 ] }
 
+[[test]]
+name = "macos_main_queue"
+path = "test_bins/macos_main_queue.rs"
+harness = false
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]

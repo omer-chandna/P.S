@@ -56,6 +56,16 @@ pub fn show_main(app: &tauri::AppHandle) {
     }
 }
 
+#[doc(hidden)]
+pub mod test_support {
+    /// Runs a closure on the macOS main queue. Used to prove keyboard-layout
+    /// lookups no longer abort when capture starts on a worker thread.
+    #[cfg(target_os = "macos")]
+    pub fn run_on_main_thread<T: Send + 'static>(work: impl FnOnce() -> T + Send + 'static) -> T {
+        crate::platform::run_on_main_thread(work)
+    }
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
