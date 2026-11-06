@@ -8,6 +8,19 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 
 ![P.S. main window, with the manual optimizer and an empty result](docs/images/home.png)
 
+**Version 0.1.0.** This repository is the optimizer, [`crates/ps-core`](crates/ps-core). The menu-bar and tray application is the product those rules are written for. The shell, and the installers that go with it, land in a later change. Until then, [build the core from source](#install).
+
+## Contents
+
+- [Use it](#use-it)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Set up](#set-up)
+- [Privacy](#privacy)
+- [Repository](#repository)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Use it
 
 1. Select the prompt in Cursor, VS Code, a browser field, or another editor.
@@ -37,56 +50,99 @@ A vague bug report can become an instruction to investigate, fix, and check the 
 
 That is the behaviour P.S. is built for. It is not a promise that every model will phrase the rewrite the same way.
 
-## Set up
-
-Install [Ollama](https://ollama.com/download) and leave it running on this computer. The first launch of P.S. walks through the connection, a model, and the shortcut.
-
-![Model manager with Fast, Balanced, and Quality suggestions](docs/images/models.png)
-
-The suggestions are starting points, not a ranking:
-
-| | Model | Aimed at |
-| --- | --- | --- |
-| Fast | `qwen3.5:2b` | Less memory, quicker rewrites |
-| Balanced | `qwen3.5:4b` | The usual recommendation |
-| Quality | `qwen3.5:9b` | Long prompts with many constraints |
-
-Any compatible local model can be selected. Cloud entries are listed and cannot be used for inference. The download size on the card is not the memory the model needs while it is running.
-
-P.S. runs on macOS 14 Sonoma or newer, Apple Silicon only, and on Windows 11 x64. Intel Macs and Windows 10 are outside the target. Linux is a development host, not a shipped app.
-
-## Privacy
-
-Inference stays on your machine. There is no account and no subscription. The Ollama address must be `localhost`, `127.0.0.1`, or `::1`. Selected prompts are not saved and are not written to logs. Starting a model download is the one action that contacts Ollama’s model registry.
-
-## Develop
-
-You need Node.js 22 and Rust 1.90. Tests mock Ollama and do not download models.
-
-```bash
-npm install
-cargo test -p ps-core
-npm test
-npm run tauri dev
-```
-
-The optimizer is `crates/ps-core`. It does not depend on the desktop window, so a later CLI can use the same rules. The instructions sent to the model are versioned text in `prompts/`.
-
-Build an unsigned installer from a Mac or a Windows machine:
-
-```bash
-npm run tauri build -- --bundles dmg --target aarch64-apple-darwin
-npm run tauri build -- --bundles nsis --target x86_64-pc-windows-msvc
-```
+## Requirements
 
 | | |
 | --- | --- |
-| [Prompt engine](docs/PROMPT_ENGINE.md) | What counts as a better prompt, and what the model is told |
-| [Architecture](docs/ARCHITECTURE.md) | How capture, inference, and paste are split |
-| [Testing](docs/TESTING.md) | Automated checks, and the manual pass still owed on macOS and Windows |
-| [Releasing](docs/RELEASING.md) | Installers, signing, and notarization |
-| [Contributing](CONTRIBUTING.md) | How to change the prompts without loosening the product rule |
+| Desktop app | macOS 14 Sonoma or newer on Apple Silicon, or Windows 11 x64 |
+| This repository | Rust 1.90. With [rustup](https://rustup.rs), `rust-toolchain.toml` selects the compiler, rustfmt, and clippy. Linux is a supported host for building and testing the core. |
+| Models | [Ollama](https://ollama.com/download) on the same computer |
+
+Intel Macs and Windows 10 are outside the desktop target.
+
+## Install
+
+Clone the repository and run the core. Installers for the desktop app come with the shell.
+
+```bash
+git clone https://github.com/omer-chandna/P.S.git
+cd P.S
+cargo test -p ps-core
+```
+
+The tests stand in for Ollama with a local mock. They leave installed models alone, and the Ollama daemon can stay stopped.
+
+Before a pull request:
+
+```bash
+cargo fmt --all --check
+cargo clippy -p ps-core --all-targets -- -D warnings
+cargo test -p ps-core
+```
+
+## Set up
+
+Install [Ollama](https://ollama.com/download) and leave it running on this computer. The first launch of the desktop app walks through the connection, a model, and the shortcut. The core already applies the same limits.
+
+The only accepted addresses are loopback. The default is `http://127.0.0.1:11434`. `localhost` and `::1` are accepted. A public host, a path, or a username in the URL is rejected.
+
+![Model manager with Fast, Balanced, and Quality suggestions](docs/images/models.png)
+
+The suggestions are starting points, not a ranking. Download size is the registry file. The runtime budget is a conservative reserve used to phrase the suggestion, and it is larger than the download.
+
+| | Model | Download | Runtime budget | Aimed at |
+| --- | --- | --- | --- | --- |
+| Fast | `qwen3.5:2b` | about 2 GB | 3 GB | Less memory, quicker rewrites |
+| Balanced | `qwen3.5:4b` | about 3 GB | 6 GB | The usual recommendation |
+| Quality | `qwen3.5:9b` | about 6 GB | 10 GB | Long prompts with many constraints |
+
+Any compatible local model can be selected. Cloud entries stay visible in the list and are refused for inference. That includes a remote host on the model, and a name that carries a cloud tag.
+
+Sampling defaults live with the engine: temperature 0.2, top-p 0.9, a 90 second timeout, and reasoning off unless you turn it on. The full contract is in the [prompt engine](docs/PROMPT_ENGINE.md) notes.
+
+## Privacy
+
+Inference stays on your machine. There is no account and no subscription. Selected prompts are not saved and are not written to logs. Starting a model download is the one action that contacts Ollama’s model registry.
+
+## Repository
+
+| Path | Role |
+| --- | --- |
+| [`crates/ps-core`](crates/ps-core) | Endpoint checks, the Ollama client, optimization, preservation, shortcuts, and settings. The window, global hotkeys, and clipboard I/O stay outside this crate, so a later CLI can share the rules. |
+| [`prompts/`](prompts/README.md) | System instructions, version 1.0.0. The selected prompt is a separate user message. |
+| [`fixtures/prompts.json`](fixtures/prompts.json) | Representative cases. Tests replay mocked model output against them. |
+| [`docs/PROMPT_ENGINE.md`](docs/PROMPT_ENGINE.md) | What counts as a better prompt, and what the model is told. |
+
+The next layer is the Tauri shell: menu bar and tray, onboarding, settings on disk, global shortcuts, capture and paste on macOS and Windows, then installers, signing, and notarization.
+
+## Contributing
+
+Issues and pull requests are welcome on [GitHub](https://github.com/omer-chandna/P.S).
+
+1. Branch from `main`.
+2. Keep each commit to one behaviour. Subjects in this project use a conventional prefix: `feat:`, `fix:`, `test:`, `docs:`, or `ci:`.
+3. Run the three checks in [Install](#install). In the pull request, list the commands you ran. When a macOS or Windows pass is still manual, say that too.
+
+A few decisions are the product:
+
+- The Ollama address stays on loopback.
+- Each optimization is one chat request. The model classifies and rewrites in that same call.
+- Prompt text stays out of logs and off disk.
+- Linux builds and tests the core. The shipped app is Apple Silicon macOS and Windows 11.
+- The packaged binary name is `postscript`, so it stays clear of the Unix `ps` process tool.
+
+### Changing the prompts
+
+Edit `prompts/shared.md`, `prompts/improve.md`, and `prompts/compact.md` together. Bump `ps-prompt-version` in each file in the same commit, and describe the behaviour change in `docs/PROMPT_ENGINE.md`. The selected text stays in the user message.
+
+When parsing, preservation, or delivery changes, extend the core tests or `fixtures/prompts.json`. Keep automated runs on mocked responses. Comparing live models stays a manual pass, written up with the change that ran it.
+
+GitHub issues are public. When the original prompt contains private code, describe the behaviour with a stand-in sentence.
 
 ## License
 
-[MIT](LICENSE).
+P.S. is released under the [MIT License](LICENSE).
+
+Copyright (c) 2026 P.S. contributors.
+
+You may use, copy, modify, merge, publish, distribute, and sell this project, including in commercial work. Keep the copyright notice and the license text with the software. The project is provided as is, without warranty.
