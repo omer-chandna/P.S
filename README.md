@@ -8,13 +8,14 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 
 ![P.S. main window, with the manual optimizer and an empty result](docs/images/home.png)
 
-**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Install it from source](#install) on Apple Silicon macOS or Windows 11.
+**Version 0.1.0.** The menu-bar and tray application is in this repository, on top of the optimizer in [`crates/ps-core`](crates/ps-core). [Install the app](#install) on Apple Silicon macOS or Windows 11.
 
 ## Contents
 
 - [Use it](#use-it)
 - [Requirements](#requirements)
 - [Install](#install)
+- [Development](#development)
 - [Set up](#set-up)
 - [Privacy](#privacy)
 - [Repository](#repository)
@@ -64,14 +65,45 @@ Intel Macs and Windows 10 are outside the desktop target. Linux can build and te
 
 ## Install
 
+Clone the repository and install the dependencies, then build the installer for your system.
+
 ```bash
 git clone https://github.com/omer-chandna/P.S.git
 cd P.S
 npm install
+```
+
+### macOS
+
+```bash
+npm run installer:mac
+```
+
+Open `target/aarch64-apple-darwin/release/bundle/dmg/PS_0.1.0_aarch64.dmg`. Drag **PS** to Applications, then open **PS** from Applications.
+
+In the app, choose **Enable Accessibility**. macOS lists the installed app as **PS**. Turn **PS** on under Privacy & Security, Accessibility. Quit and reopen PS if the shortcut does not respond yet.
+
+This build is unsigned. If macOS quarantines the app and blocks the first open, use System Settings, Privacy & Security, and choose Open Anyway.
+
+### Windows
+
+```bash
+npm run installer:win
+```
+
+Run `target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe`. The installer adds **PS** to the Start menu for the current user.
+
+This build is unsigned. If SmartScreen says Windows protected your PC, choose More info, then Run anyway.
+
+The first window walks through Ollama, a model, and the shortcut. Closing the window hides P.S. Quit from the menu bar or the tray.
+
+## Development
+
+```bash
 npm run tauri dev
 ```
 
-The first window walks through Ollama, a model, and the shortcut. Closing the window hides P.S. Quit from the menu bar or the tray.
+This runs the unpackaged binary. On macOS, Accessibility lists that process as **postscript**. On Windows the binary is `postscript.exe`. The installed app is listed as **PS**.
 
 ## Set up
 

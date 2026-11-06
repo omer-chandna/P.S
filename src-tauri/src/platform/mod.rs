@@ -60,6 +60,17 @@ pub fn enrich_hardware(profile: &mut ps_core::hardware::HardwareProfile) {
     let _ = profile;
 }
 
+pub fn accessibility_list_name() -> &'static str {
+    #[cfg(target_os = "macos")]
+    {
+        macos::accessibility_list_name()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        "PS"
+    }
+}
+
 pub fn host() -> &'static dyn Host {
     #[cfg(target_os = "macos")]
     {
