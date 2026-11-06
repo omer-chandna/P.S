@@ -136,7 +136,7 @@ Inference stays on your machine. There is no account and no subscription. Select
 | [`crates/ps-core`](crates/ps-core) | Endpoint checks, the Ollama client, optimization, preservation, shortcuts, and settings. The window, global hotkeys, and clipboard I/O stay outside this crate, so a later CLI can share the rules. |
 | [`src-tauri/`](src-tauri) | Menu bar, tray, global shortcuts, capture, and paste. |
 | [`src/`](src) | The window: home, models, settings, onboarding. |
-| [`prompts/`](prompts/README.md) | System instructions, version 1.0.0. The selected prompt is a separate user message. |
+| [`prompts/`](prompts/README.md) | System instructions, version 1.2.0. The selected prompt is a separate user message. |
 | [`fixtures/prompts.json`](fixtures/prompts.json) | Representative cases. Tests replay mocked model output against them. |
 | [`docs/PROMPT_ENGINE.md`](docs/PROMPT_ENGINE.md) | What counts as a better prompt, and what the model is told. |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | Installers, signing, and notarization. |

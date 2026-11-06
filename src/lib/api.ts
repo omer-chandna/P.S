@@ -253,7 +253,7 @@ export async function appInfo(): Promise<AppInfo> {
     return {
       name: "P.S.",
       version: "0.1.0",
-      promptVersion: "1.0.0",
+      promptVersion: "1.2.0",
       os: "browser",
       arch: "preview",
       supportedPlatform: false,

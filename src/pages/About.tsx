@@ -30,7 +30,7 @@ export function About() {
         </div>
         <div>
           <dt className="text-muted">Prompt version</dt>
-          <dd>{info?.promptVersion ?? "1.0.0"}</dd>
+          <dd>{info?.promptVersion ?? "1.2.0"}</dd>
         </div>
         <div>
           <dt className="text-muted">System</dt>

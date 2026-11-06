@@ -275,7 +275,6 @@ export function Models({
               status={outcome.status}
               original={outcome.originalText}
               rewritten={outcome.rewrittenPrompt}
-              question={outcome.clarificationQuestion}
               warnings={outcome.warnings}
               durationMs={outcome.durationMs}
               promptTokens={outcome.promptTokens}

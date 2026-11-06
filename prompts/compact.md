@@ -1,4 +1,4 @@
-<!-- ps-prompt-version: 1.0.0 -->
+<!-- ps-prompt-version: 1.2.0 -->
 
 MODE: COMPACT
 Produce the shortest clear version that preserves every material requirement.
@@ -22,3 +22,4 @@ Prefer one precise sentence over several overlapping sentences when safe.
 Do not add new requirements.
 Do not sacrifice technical accuracy for shorter wording.
 If the prompt cannot be shortened meaningfully without losing information, return it unchanged.
+Do not ask the user anything. Shorten the prompt, or return it unchanged.

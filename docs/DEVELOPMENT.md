@@ -30,10 +30,10 @@ P.S. is a Tauri desktop app with a shared Rust core. Supported products are Appl
 
 ### Phase 3 — Prompt optimization
 
-- [x] Shared, Improve, and Compact prompts (v1.0.0)
+- [x] Shared, Improve, and Compact prompts (v1.2.0)
 - [x] Separate system and user messages
 - [x] JSON schema output
-- [x] `rewritten`, `unchanged`, and `needs_clarification`
+- [x] `rewritten` and `unchanged`
 - [x] Protected-reference checks and suspicious-rewrite routing
 - [x] One inference call, no critique pass
 
@@ -47,7 +47,7 @@ P.S. is a Tauri desktop app with a shared Rust core. Supported products are Appl
 
 - [x] Clipboard sentinel rules and delivery planner
 - [x] macOS and Windows capture, focus checks, and paste
-- [x] No paste for unchanged or clarification results
+- [x] No paste for unchanged results
 - [ ] Native verification on macOS and Windows hardware
 
 ### Phase 6 — Global shortcuts

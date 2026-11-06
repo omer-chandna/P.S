@@ -211,15 +211,6 @@ async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
             }
         }
         DeliveryPlan::LeaveUnchanged => notify(app, "Already clear"),
-        DeliveryPlan::AskClarification => {
-            stage_review(
-                app,
-                outcome,
-                None,
-                "A decision is needed before this prompt can be rewritten.",
-            );
-            notify(app, "Clarification needed");
-        }
         DeliveryPlan::Preview => {
             let note = preview_note(&analysis, &context);
             stage_review(
@@ -306,7 +297,6 @@ fn to_outcome(
         status: analysis.status,
         original_text: original.to_string(),
         rewritten_prompt: analysis.rewritten_prompt.clone(),
-        clarification_question: analysis.clarification_question.clone(),
         delivery,
         warnings: analysis.preservation.warnings(),
         duration_ms: u64::try_from(analysis.duration_ms).unwrap_or(u64::MAX),

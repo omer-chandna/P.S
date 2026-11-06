@@ -10,7 +10,6 @@ describe("format helpers", () => {
 
   it("labels optimizer states without implying every prompt must change", () => {
     expect(statusLabel("unchanged")).toBe("Already clear");
-    expect(statusLabel("needs_clarification")).toBe("Needs a decision");
     expect(statusLabel("rewritten")).toBe("Rewritten");
     expect(fitLabel("unknown")).toBe("Unknown");
   });

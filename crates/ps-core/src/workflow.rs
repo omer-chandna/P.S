@@ -4,13 +4,12 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// What the desktop shell should do after a validated optimization.
-/// Unchanged and clarification never paste. Suspicious rewrites preview.
+/// Unchanged results never paste. Suspicious rewrites preview.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DeliveryPlan {
     Replace,
     LeaveUnchanged,
-    AskClarification,
     Preview,
     Abort,
 }
@@ -31,7 +30,6 @@ pub fn plan_delivery(
 ) -> DeliveryPlan {
     match status {
         OptimizationStatus::Unchanged => DeliveryPlan::LeaveUnchanged,
-        OptimizationStatus::NeedsClarification => DeliveryPlan::AskClarification,
         OptimizationStatus::Rewritten if context.manual => DeliveryPlan::Preview,
         OptimizationStatus::Rewritten => {
             let safe_to_paste = !suspicious
@@ -89,15 +87,11 @@ mod tests {
     }
 
     #[test]
-    fn unchanged_and_clarification_never_replace() {
+    fn unchanged_results_never_replace() {
         let context = ready(true, false);
         assert_eq!(
             plan_delivery(OptimizationStatus::Unchanged, false, &context),
             DeliveryPlan::LeaveUnchanged
-        );
-        assert_eq!(
-            plan_delivery(OptimizationStatus::NeedsClarification, false, &context),
-            DeliveryPlan::AskClarification
         );
     }
 

@@ -15,12 +15,12 @@ src-tauri/               window, tray, shortcuts, clipboard, paste
 
 1. The shell captures the selection and restores the previous clipboard before inference starts.
 2. `optimize_prompt` sends one `/api/chat` request. The system message is the shared prompt plus Improve or Compact. The user message wraps the selection.
-3. The response must match the JSON schema. Contradictory combinations are rejected.
+3. The response must match the JSON schema. Contradictory combinations are rejected. A reply that is only a question leaves the selection unchanged.
 4. A rewrite is checked for missing identifiers, paths, URLs, versions, limits, quoted errors, fenced code, and weakened exclusions.
-5. `plan_delivery` chooses replace, leave unchanged, ask, or preview.
+5. `plan_delivery` chooses replace, leave unchanged, or preview.
 6. Replace pastes only when the same process is focused and the selection still matches. Anything else opens a review or does nothing to the editor.
 
-Unchanged and clarification results never paste. The original selection is not deleted before a successful paste. Paste is one edit in applications that support undo.
+Unchanged results never paste. The original selection is not deleted before a successful paste. Paste is one edit in applications that support undo.
 
 ## Ollama
 
