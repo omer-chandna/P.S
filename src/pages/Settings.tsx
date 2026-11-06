@@ -168,9 +168,11 @@ export function Settings({
       <Section title="Permissions">
         <p className="text-sm font-medium">{permission?.title}</p>
         <p className="text-sm leading-6 text-muted">{permission?.detail}</p>
-        <Button variant="secondary" onClick={() => void openPermissionSettings().catch((caught: unknown) => setMessage(asFailure(caught).message))}>
-          Open permission settings
-        </Button>
+        {permission?.state === "missing" ? (
+          <Button variant="secondary" onClick={() => void openPermissionSettings().catch((caught: unknown) => setMessage(asFailure(caught).message))}>
+            Enable Accessibility
+          </Button>
+        ) : null}
       </Section>
 
       <section className="rounded-2xl border border-line bg-surface p-4">

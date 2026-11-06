@@ -1,7 +1,12 @@
 use super::clipboard_io;
 use super::{ClipboardBackup, Host, PermissionState};
+use core_foundation::base::TCFType;
+use core_foundation::boolean::CFBoolean;
+use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
+use core_foundation::string::CFStringRef;
 use ps_core::workflow::WindowTarget;
 use ps_core::{PsError, PsResult};
+use std::path::{Component, Path};
 use std::process::Command;
 
 pub struct MacHost;
@@ -9,6 +14,39 @@ pub struct MacHost;
 #[link(name = "ApplicationServices", kind = "framework")]
 extern "C" {
     fn AXIsProcessTrusted() -> u8;
+    fn AXIsProcessTrustedWithOptions(options: CFDictionaryRef) -> u8;
+    static kAXTrustedCheckOptionPrompt: CFStringRef;
+}
+
+pub(crate) fn accessibility_list_name() -> &'static str {
+    list_name_for_path(std::env::current_exe().ok().as_deref())
+}
+
+fn list_name_for_path(path: Option<&Path>) -> &'static str {
+    let bundled = path.is_some_and(|path| {
+        path.components().any(|component| match component {
+            Component::Normal(name) => name.to_string_lossy().ends_with(".app"),
+            _ => false,
+        })
+    });
+    if bundled {
+        "PS"
+    } else {
+        "postscript"
+    }
+}
+
+/// Registers this process in the Accessibility list and shows the system dialog
+/// when it is not already trusted. A plain `AXIsProcessTrusted` check does neither.
+fn prompt_for_accessibility() {
+    use core_foundation::string::CFString;
+
+    let key = unsafe { CFString::wrap_under_get_rule(kAXTrustedCheckOptionPrompt) };
+    let value = CFBoolean::true_value();
+    let options = CFDictionary::from_CFType_pairs(&[(key.as_CFType(), value.as_CFType())]);
+    unsafe {
+        AXIsProcessTrustedWithOptions(options.as_concrete_TypeRef());
+    }
 }
 
 impl Host for MacHost {
@@ -70,6 +108,7 @@ end tell"#,
     }
 
     fn open_accessibility_settings(&self) -> PsResult<()> {
+        prompt_for_accessibility();
         let urls = [
             "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility",
             "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
@@ -123,4 +162,22 @@ fn parse_frontmost(output: &str) -> PsResult<WindowTarget> {
         pid,
         native_id: i64::from(pid),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::list_name_for_path;
+    use std::path::Path;
+
+    #[test]
+    fn bundled_app_is_listed_as_ps() {
+        let path = Path::new("/Applications/PS.app/Contents/MacOS/postscript");
+        assert_eq!(list_name_for_path(Some(path)), "PS");
+    }
+
+    #[test]
+    fn dev_binary_is_listed_as_postscript() {
+        let path = Path::new("/Users/me/P.S/target/debug/postscript");
+        assert_eq!(list_name_for_path(Some(path)), "postscript");
+    }
 }

@@ -3104,6 +3104,7 @@ name = "ps-desktop"
 version = "0.1.0"
 dependencies = [
  "arboard",
+ "core-foundation",
  "enigo",
  "ps-core",
  "serde",

@@ -291,16 +291,31 @@ pub fn shortcut_info(app: AppHandle) -> ShortcutInfo {
 #[tauri::command]
 pub fn permission_info() -> PermissionInfo {
     match host().accessibility() {
-        PermissionState::Granted => PermissionInfo {
-            state: "granted",
-            title: "Accessibility available".into(),
-            detail: "P.S. can read the active window and simulate copy and paste.".into(),
-        },
-        PermissionState::Missing => PermissionInfo {
-            state: "missing",
-            title: "Accessibility permission needed".into(),
-            detail: "macOS needs Accessibility permission so P.S. can copy and replace the selected text. Open System Settings, enable P.S., then retry.".into(),
-        },
+        PermissionState::Granted => {
+            if cfg!(target_os = "windows") {
+                PermissionInfo {
+                    state: "granted",
+                    title: "Shortcuts are ready".into(),
+                    detail: "Windows does not ask for a separate permission. Ctrl+Alt+P improves the selection. Ctrl+Alt+Shift+P compacts it.".into(),
+                }
+            } else {
+                PermissionInfo {
+                    state: "granted",
+                    title: "Accessibility available".into(),
+                    detail: "P.S. can read the active window and simulate copy and paste.".into(),
+                }
+            }
+        }
+        PermissionState::Missing => {
+            let name = platform::accessibility_list_name();
+            PermissionInfo {
+                state: "missing",
+                title: "Accessibility permission needed".into(),
+                detail: format!(
+                    "Turn on {name} in System Settings, under Privacy & Security, Accessibility. P.S. needs that permission to copy and replace the selected text. Enable Accessibility to add {name} to the list."
+                ),
+            }
+        }
         PermissionState::Unsupported => PermissionInfo {
             state: "unsupported",
             title: "This system is not a supported target".into(),

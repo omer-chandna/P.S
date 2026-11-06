@@ -155,9 +155,11 @@ export function Onboarding({
             <p>Improve: Control+Option+P on macOS, Ctrl+Alt+P on Windows. Compact adds Shift.</p>
             <p className="font-medium">{permission?.title}</p>
             <p className="text-muted">{permission?.detail}</p>
-            <Button variant="secondary" onClick={() => void openPermissionSettings().catch((caught: unknown) => setError(asFailure(caught).message))}>
-              Open Accessibility settings
-            </Button>
+            {permission?.state === "missing" ? (
+              <Button variant="secondary" onClick={() => void openPermissionSettings().catch((caught: unknown) => setError(asFailure(caught).message))}>
+                Enable Accessibility
+              </Button>
+            ) : null}
             {error ? <p className="text-danger">{error}</p> : null}
           </div>
         ) : null}
