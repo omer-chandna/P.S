@@ -30,8 +30,6 @@ export function statusLabel(status: string): string {
       return "Rewritten";
     case "unchanged":
       return "Already clear";
-    case "needs_clarification":
-      return "Needs a decision";
     default:
       return "Result";
   }

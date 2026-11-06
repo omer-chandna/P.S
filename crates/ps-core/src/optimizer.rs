@@ -16,7 +16,6 @@ pub const MAX_PROMPT_CHARS: usize = 50_000;
 pub enum OptimizationStatus {
     Rewritten,
     Unchanged,
-    NeedsClarification,
 }
 
 #[derive(Debug, Clone)]
@@ -47,7 +46,6 @@ impl From<&AppSettings> for OptimizeConfig {
 pub struct OptimizationAnalysis {
     pub status: OptimizationStatus,
     pub rewritten_prompt: String,
-    pub clarification_question: String,
     pub preservation: PreservationReport,
     pub suspicious: bool,
     pub duration_ms: u128,
@@ -158,7 +156,6 @@ pub fn interpret_chat_response(
     Ok(OptimizationAnalysis {
         status: parsed.status,
         rewritten_prompt: parsed.rewritten_prompt,
-        clarification_question: parsed.clarification_question,
         preservation,
         suspicious,
         duration_ms: elapsed.as_millis(),
@@ -174,7 +171,6 @@ pub fn interpret_chat_response(
 pub(crate) struct ParsedOptimization {
     status: OptimizationStatus,
     rewritten_prompt: String,
-    clarification_question: String,
 }
 
 pub(crate) fn parse_model_output(raw: &str, original: &str) -> PsResult<ParsedOptimization> {
@@ -192,85 +188,183 @@ pub(crate) fn parse_model_output(raw: &str, original: &str) -> PsResult<ParsedOp
     let object = value.as_object().ok_or_else(|| PsError::MalformedOutput {
         detail: "Structured output must be a JSON object.".into(),
     })?;
-    let expected = ["status", "rewritten_prompt", "clarification_question"];
-    if object.len() != expected.len() || expected.iter().any(|key| !object.contains_key(*key)) {
+    const ALLOWED: &[&str] = &["status", "rewritten_prompt", "clarification_question"];
+    if !object.contains_key("status") || !object.contains_key("rewritten_prompt") {
+        return Err(PsError::MalformedOutput {
+            detail: "Structured output did not contain exactly the required fields.".into(),
+        });
+    }
+    if object.keys().any(|key| !ALLOWED.contains(&key.as_str())) {
         return Err(PsError::MalformedOutput {
             detail: "Structured output did not contain exactly the required fields.".into(),
         });
     }
     let status = required_string(object, "status")?;
     let rewritten = required_string(object, "rewritten_prompt")?;
-    let question = required_string(object, "clarification_question")?;
-
+    // Older models still emit clarification_question. It is never shown.
     match status {
-        "rewritten" => {
-            if !question.trim().is_empty() {
-                return Err(PsError::MalformedOutput {
-                    detail: "A rewritten result included a clarification question.".into(),
-                });
-            }
-            if rewritten.trim().is_empty() {
-                return Err(PsError::MalformedOutput {
-                    detail: "A rewritten result did not include a prompt.".into(),
-                });
-            }
-            if selection_matches(rewritten, original) {
-                return Ok(unchanged(original));
-            }
-            Ok(ParsedOptimization {
-                status: OptimizationStatus::Rewritten,
-                rewritten_prompt: rewritten.to_string(),
-                clarification_question: String::new(),
-            })
-        }
-        "unchanged" => {
-            if !question.trim().is_empty() {
-                return Err(PsError::MalformedOutput {
-                    detail: "An unchanged result included a clarification question.".into(),
-                });
-            }
-            if !selection_matches(rewritten, original) {
-                return Err(PsError::MalformedOutput {
-                    detail: "The model marked the prompt unchanged but returned different text."
-                        .into(),
-                });
-            }
-            Ok(unchanged(original))
-        }
-        "needs_clarification" => {
-            let question = question.trim();
-            if question.is_empty() {
-                return Err(PsError::MalformedOutput {
-                    detail: "A clarification result did not include a question.".into(),
-                });
-            }
-            if question.chars().count() > 500 {
-                return Err(PsError::MalformedOutput {
-                    detail: "The clarification question was unusably long.".into(),
-                });
-            }
-            if !rewritten.trim().is_empty() {
-                return Err(PsError::MalformedOutput {
-                    detail: "A clarification result also included replacement text.".into(),
-                });
-            }
-            Ok(ParsedOptimization {
-                status: OptimizationStatus::NeedsClarification,
-                rewritten_prompt: String::new(),
-                clarification_question: question.to_string(),
-            })
-        }
+        "rewritten" => settle_rewritten(rewritten, original),
+        "unchanged" => settle_unchanged(rewritten, original),
+        "needs_clarification" => Ok(settle_legacy_question(rewritten, original)),
         _ => Err(PsError::MalformedOutput {
             detail: "The model returned an unknown result status.".into(),
         }),
     }
 }
 
+fn settle_rewritten(rewritten: &str, original: &str) -> PsResult<ParsedOptimization> {
+    let rewritten = rewritten.trim();
+    if rewritten.is_empty() {
+        return Err(PsError::MalformedOutput {
+            detail: "A rewritten result did not include a prompt.".into(),
+        });
+    }
+    Ok(accept_or_leave(rewritten, original))
+}
+
+fn settle_unchanged(rewritten: &str, original: &str) -> PsResult<ParsedOptimization> {
+    let rewritten = rewritten.trim();
+    if rewritten.is_empty()
+        || selection_matches(rewritten, original)
+        || is_user_facing_question(rewritten)
+        || is_placeholder_prompt(rewritten)
+    {
+        return Ok(unchanged(original));
+    }
+    Err(PsError::MalformedOutput {
+        detail: "The model marked the prompt unchanged but returned different text.".into(),
+    })
+}
+
+/// A model that still asks a question does not stop the shortcut.
+/// A usable rewrite is kept. A question by itself leaves the selection alone.
+fn settle_legacy_question(rewritten: &str, original: &str) -> ParsedOptimization {
+    let rewritten = rewritten.trim();
+    if let Some(prompt) = usable_prompt(rewritten, original) {
+        rewritten_result(prompt)
+    } else {
+        unchanged(original)
+    }
+}
+
+fn accept_or_leave(rewritten: &str, original: &str) -> ParsedOptimization {
+    if selection_matches(rewritten, original)
+        || is_user_facing_question(rewritten)
+        || is_placeholder_prompt(rewritten)
+    {
+        unchanged(original)
+    } else {
+        rewritten_result(rewritten)
+    }
+}
+
+fn rewritten_result(prompt: &str) -> ParsedOptimization {
+    ParsedOptimization {
+        status: OptimizationStatus::Rewritten,
+        rewritten_prompt: prompt.to_string(),
+    }
+}
+
+fn usable_prompt<'a>(rewritten: &'a str, original: &str) -> Option<&'a str> {
+    if rewritten.chars().count() < 24
+        || selection_matches(rewritten, original)
+        || is_placeholder_prompt(rewritten)
+        || is_user_facing_question(rewritten)
+    {
+        return None;
+    }
+    Some(rewritten)
+}
+
+fn is_placeholder_prompt(prompt: &str) -> bool {
+    let stripped = prompt
+        .trim()
+        .trim_matches(|ch: char| matches!(ch, '"' | '\'' | '`' | '.' | '!' | '?' | ' '));
+    let lower = stripped.to_ascii_lowercase();
+    matches!(
+        lower.as_str(),
+        "" | "none"
+            | "n/a"
+            | "na"
+            | "null"
+            | "nil"
+            | "undefined"
+            | "no"
+            | "nope"
+            | "nothing"
+            | "empty"
+            | "-"
+            | "—"
+            | "..."
+            | "no clarification"
+            | "no clarification needed"
+            | "no clarification required"
+            | "no clarification necessary"
+            | "none needed"
+            | "not needed"
+            | "not applicable"
+            | "no question"
+            | "no questions"
+            | "no follow-up"
+            | "no follow up"
+            | "no followup"
+            | "false"
+    )
+}
+
+/// A short question aimed at the user, rather than a prompt for the coding agent.
+fn is_user_facing_question(text: &str) -> bool {
+    let trimmed = text.trim();
+    if trimmed.chars().count() > 280 || !trimmed.contains('?') {
+        return false;
+    }
+    let lower = trimmed.to_ascii_lowercase();
+    let first = lower.lines().next().unwrap_or(&lower).trim();
+    const LEADS: &[&str] = &[
+        "could you",
+        "can you",
+        "would you",
+        "please clarify",
+        "please specify",
+        "please provide",
+        "please tell",
+        "what specifically",
+        "which file",
+        "which option",
+        "which approach",
+        "which one",
+        "do you ",
+        "did you ",
+        "are you ",
+        "should i",
+        "should we",
+        "should this",
+        "should it",
+        "should the",
+        "should user",
+        "i need more",
+        "i need to know",
+        "before i ",
+        "before proceeding",
+        "to clarify",
+        "clarification:",
+        "quick question",
+        "one question",
+    ];
+    if !LEADS.iter().any(|lead| first.starts_with(lead)) {
+        return false;
+    }
+    let remainder = first
+        .split_once('?')
+        .map(|(_, rest)| rest.trim())
+        .unwrap_or("");
+    remainder.chars().count() <= 40
+}
+
 fn unchanged(original: &str) -> ParsedOptimization {
     ParsedOptimization {
         status: OptimizationStatus::Unchanged,
         rewritten_prompt: original.to_string(),
-        clarification_question: String::new(),
     }
 }
 
@@ -334,10 +428,10 @@ mod tests {
     }
 
     #[test]
-    fn parses_rewritten_unchanged_and_clarification() {
+    fn parses_a_rewrite_and_an_unchanged_prompt() {
         let original = "fix login it breaks on refresh";
         let rewritten = parse_model_output(
-            r#"{"status":"rewritten","rewritten_prompt":"Investigate the login failure after a page refresh. Identify the root cause, implement a focused fix, and verify that the expected login state is preserved.","clarification_question":""}"#,
+            r#"{"status":"rewritten","rewritten_prompt":"Investigate the login failure after a page refresh. Identify the root cause, implement a focused fix, and verify that the expected login state is preserved."}"#,
             original,
         )
         .unwrap();
@@ -345,7 +439,7 @@ mod tests {
 
         let same = parse_model_output(
             &format!(
-                r#"{{"status":"rewritten","rewritten_prompt":{},"clarification_question":""}}"#,
+                r#"{{"status":"rewritten","rewritten_prompt":{}}}"#,
                 serde_json::to_string(original).unwrap()
             ),
             original,
@@ -356,51 +450,78 @@ mod tests {
 
         let unchanged = parse_model_output(
             &format!(
-                r#"{{"status":"unchanged","rewritten_prompt":{},"clarification_question":""}}"#,
+                r#"{{"status":"unchanged","rewritten_prompt":{}}}"#,
                 serde_json::to_string(original).unwrap()
             ),
             original,
         )
         .unwrap();
+        assert_eq!(unchanged.status, OptimizationStatus::Unchanged);
         assert_eq!(unchanged.rewritten_prompt, original);
+    }
 
-        let question = parse_model_output(
+    #[test]
+    fn a_question_leaves_the_selection_and_a_rewrite_is_kept() {
+        let original = "fix login it breaks on refresh";
+        let only_question = parse_model_output(
             r#"{"status":"needs_clarification","rewritten_prompt":"","clarification_question":"Should user deletion be permanent or reversible?"}"#,
-            "Implement user deletion, but I haven't decided whether it should be permanent or reversible.",
+            original,
         )
         .unwrap();
-        assert_eq!(question.status, OptimizationStatus::NeedsClarification);
-        assert!(question.rewritten_prompt.is_empty());
-        assert_eq!(
-            question.clarification_question,
-            "Should user deletion be permanent or reversible?"
-        );
+        assert_eq!(only_question.status, OptimizationStatus::Unchanged);
+        assert_eq!(only_question.rewritten_prompt, original);
+
+        let shaped = parse_model_output(
+            r#"{"status":"rewritten","rewritten_prompt":"Could you clarify which file contains the login bug?"}"#,
+            original,
+        )
+        .unwrap();
+        assert_eq!(shaped.status, OptimizationStatus::Unchanged);
+        assert_eq!(shaped.rewritten_prompt, original);
+
+        let with_rewrite = parse_model_output(
+            r#"{"status":"needs_clarification","rewritten_prompt":"Investigate the login failure after a page refresh. Identify the root cause, implement a focused fix, and verify that the expected login state is preserved.","clarification_question":"What should the expected behavior be?"}"#,
+            original,
+        )
+        .unwrap();
+        assert_eq!(with_rewrite.status, OptimizationStatus::Rewritten);
+        assert!(with_rewrite.rewritten_prompt.contains("login failure"));
+
+        let stray = parse_model_output(
+            r#"{"status":"rewritten","rewritten_prompt":"Investigate the login failure after a page refresh and fix the session.","clarification_question":"Which file contains the login bug?"}"#,
+            original,
+        )
+        .unwrap();
+        assert_eq!(stray.status, OptimizationStatus::Rewritten);
+        assert!(stray.rewritten_prompt.contains("fix the session"));
     }
 
     #[test]
     fn rejects_contradictory_empty_and_truncated_payloads() {
         let original =
             "Add a loading spinner to the Submit button while the existing request is in progress.";
+        assert!(
+            parse_model_output(r#"{"status":"rewritten","rewritten_prompt":""}"#, original)
+                .is_err()
+        );
         assert!(parse_model_output(
-            r#"{"status":"rewritten","rewritten_prompt":"","clarification_question":""}"#,
+            r#"{"status":"unchanged","rewritten_prompt":"different"}"#,
             original
         )
         .is_err());
-        assert!(parse_model_output(
-            r#"{"status":"unchanged","rewritten_prompt":"different","clarification_question":""}"#,
-            original
-        )
-        .is_err());
-        assert!(parse_model_output(
+        let question_only = parse_model_output(
             r#"{"status":"needs_clarification","rewritten_prompt":"do this","clarification_question":"Which?"}"#,
-            original
+            original,
         )
-        .is_err());
-        assert!(parse_model_output(
+        .unwrap();
+        assert_eq!(question_only.status, OptimizationStatus::Unchanged);
+        assert_eq!(question_only.rewritten_prompt, original);
+        let empty_question = parse_model_output(
             r#"{"status":"needs_clarification","rewritten_prompt":"","clarification_question":""}"#,
-            original
+            original,
         )
-        .is_err());
+        .unwrap();
+        assert_eq!(empty_question.status, OptimizationStatus::Unchanged);
         assert!(matches!(
             parse_model_output(
                 r#"{"status":"rewritten","rewritten_prompt":"partial"#,
@@ -412,11 +533,9 @@ mod tests {
             parse_model_output("   ", original),
             Err(PsError::EmptyResponse)
         ));
-        assert!(parse_model_output(
-            r#"{"status":"ship_it","rewritten_prompt":"x","clarification_question":""}"#,
-            original
-        )
-        .is_err());
+        assert!(
+            parse_model_output(r#"{"status":"ship_it","rewritten_prompt":"x"}"#, original).is_err()
+        );
         assert!(parse_model_output("```json\n{\"status\":\"unchanged\"}\n```", original).is_err());
     }
 

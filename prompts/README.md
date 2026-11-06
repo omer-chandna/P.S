@@ -2,7 +2,7 @@
 
 These files are the production system prompts. They are versioned together.
 
-Current version: **1.0.0** (`<!-- ps-prompt-version: 1.0.0 -->` in each file).
+Current version: **1.2.0** (`<!-- ps-prompt-version: 1.2.0 -->` in each file).
 
 | File | Role |
 | --- | --- |

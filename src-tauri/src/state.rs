@@ -24,7 +24,6 @@ pub struct OptimizeOutcome {
     pub status: OptimizationStatus,
     pub original_text: String,
     pub rewritten_prompt: String,
-    pub clarification_question: String,
     pub delivery: ps_core::workflow::DeliveryPlan,
     pub warnings: Vec<String>,
     pub duration_ms: u64,

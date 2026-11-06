@@ -5,7 +5,6 @@ export interface ResultViewProps {
   status: OptimizationStatus | "idle" | "error";
   original: string;
   rewritten?: string;
-  question?: string;
   warnings?: string[];
   message?: string;
   durationMs?: number;
@@ -20,7 +19,6 @@ export function ResultView({
   status,
   original,
   rewritten = "",
-  question = "",
   warnings = [],
   message,
   durationMs,
@@ -53,7 +51,7 @@ export function ResultView({
       <div className="flex items-center justify-between gap-3">
         <p
           className={`text-xs font-medium uppercase tracking-[0.14em] ${
-            status === "unchanged" ? "text-ok" : status === "needs_clarification" ? "text-warn" : "text-accent"
+            status === "unchanged" ? "text-ok" : "text-accent"
           }`}
         >
           {statusLabel(status)}
@@ -66,16 +64,6 @@ export function ResultView({
             : null}
         </p>
       </div>
-
-      {status === "needs_clarification" ? (
-        <div>
-          <h2 className="text-sm font-medium">Clarification</h2>
-          <p className="mt-2 text-base leading-7">{question}</p>
-          <p className="mt-3 text-sm leading-6 text-muted">
-            The selection was not changed. Answer this in your next prompt, or cancel and keep the original.
-          </p>
-        </div>
-      ) : null}
 
       {status === "unchanged" ? (
         <div>

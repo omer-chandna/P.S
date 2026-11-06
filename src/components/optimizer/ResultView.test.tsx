@@ -11,19 +11,6 @@ describe("ResultView", () => {
     expect(screen.getByText(/Nothing was pasted/)).toBeInTheDocument();
   });
 
-  it("shows a clarification without pretending a rewrite exists", () => {
-    render(
-      <ResultView
-        status="needs_clarification"
-        original="Implement user deletion, but I haven't decided whether it should be permanent or reversible."
-        question="Should user deletion be permanent or reversible?"
-      />,
-    );
-    expect(screen.getByText("Needs a decision")).toBeInTheDocument();
-    expect(screen.getByText("Should user deletion be permanent or reversible?")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Optimized prompt")).not.toBeInTheDocument();
-  });
-
   it("shows a rewrite beside the original and copies it", async () => {
     const onCopy = vi.fn();
     render(

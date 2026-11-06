@@ -31,7 +31,7 @@ async fn chat_round_trip_uses_structured_output_and_preserves_constraints() {
             "eval_count": 30,
             "message": {
                 "role": "assistant",
-                "content": "{\"status\":\"rewritten\",\"rewritten_prompt\":\"Update src/auth/session.ts. Keep the public API unchanged and preserve compatibility with Node 22.\",\"clarification_question\":\"\"}"
+                "content": "{\"status\":\"rewritten\",\"rewritten_prompt\":\"Update src/auth/session.ts. Keep the public API unchanged and preserve compatibility with Node 22.\"}"
             }
         })))
         .mount(&server)
@@ -59,7 +59,7 @@ async fn chat_round_trip_uses_structured_output_and_preserves_constraints() {
     assert!(analysis.rewritten_prompt.contains("Node 22"));
     assert_eq!(analysis.prompt_tokens, Some(42));
     assert_eq!(analysis.completion_tokens, Some(30));
-    assert_eq!(analysis.prompt_version, "1.0.0");
+    assert_eq!(analysis.prompt_version, "1.2.0");
 }
 
 #[tokio::test]
@@ -75,7 +75,7 @@ async fn unchanged_fixture_keeps_the_exact_original() {
             "message": {
                 "role": "assistant",
                 "content": format!(
-                    "{{\"status\":\"unchanged\",\"rewritten_prompt\":{},\"clarification_question\":\"\"}}",
+                    "{{\"status\":\"unchanged\",\"rewritten_prompt\":{}}}",
                     serde_json::to_string(original).unwrap()
                 )
             }
@@ -100,7 +100,9 @@ async fn unchanged_fixture_keeps_the_exact_original() {
 }
 
 #[tokio::test]
-async fn clarification_fixture_has_no_replacement_text() {
+async fn a_question_only_reply_leaves_the_original() {
+    let original =
+        "Implement user deletion, but I haven't decided whether it should be permanent or reversible.";
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/api/chat"))
@@ -111,25 +113,54 @@ async fn clarification_fixture_has_no_replacement_text() {
                 "content": "{\"status\":\"needs_clarification\",\"rewritten_prompt\":\"\",\"clarification_question\":\"Should user deletion be permanent or reversible?\"}"
             }
         })))
+        .expect(1)
         .mount(&server)
         .await;
     let client = OllamaClient::new(&server.uri()).unwrap();
     let analysis = optimize_prompt(
         &client,
         "qwen3.5:4b",
-        "Implement user deletion, but I haven't decided whether it should be permanent or reversible.",
+        original,
         OptimizationMode::Improve,
         &config(),
         &CancellationToken::new(),
     )
     .await
     .unwrap();
-    assert_eq!(analysis.status, OptimizationStatus::NeedsClarification);
-    assert!(analysis.rewritten_prompt.is_empty());
-    assert_eq!(
-        analysis.clarification_question,
-        "Should user deletion be permanent or reversible?"
-    );
+    assert_eq!(analysis.status, OptimizationStatus::Unchanged);
+    assert_eq!(analysis.rewritten_prompt, original);
+}
+
+#[tokio::test]
+async fn a_legacy_question_with_a_rewrite_keeps_the_rewrite() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/api/chat"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "done": true,
+            "done_reason": "stop",
+            "message": {
+                "role": "assistant",
+                "content": "{\"status\":\"needs_clarification\",\"rewritten_prompt\":\"Investigate the login failure after a page refresh. Identify the root cause, implement a focused fix, and verify that the expected login state is preserved.\",\"clarification_question\":\"Which file contains the login bug?\"}"
+            }
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = OllamaClient::new(&server.uri()).unwrap();
+    let analysis = optimize_prompt(
+        &client,
+        "qwen3.5:4b",
+        "fix login it breaks on refresh",
+        OptimizationMode::Improve,
+        &config(),
+        &CancellationToken::new(),
+    )
+    .await
+    .unwrap();
+    assert_eq!(analysis.status, OptimizationStatus::Rewritten);
+    assert!(analysis.rewritten_prompt.contains("login failure"));
 }
 
 #[tokio::test]

@@ -97,7 +97,6 @@ export function Home({
         status={error ? "error" : outcome ? outcome.status : "idle"}
         original={outcome?.originalText ?? text}
         rewritten={edited}
-        question={outcome?.clarificationQuestion}
         warnings={outcome?.warnings}
         message={error ?? undefined}
         durationMs={outcome?.durationMs}

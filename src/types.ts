@@ -1,11 +1,6 @@
 export type OptimizationMode = "improve" | "compact";
-export type OptimizationStatus = "rewritten" | "unchanged" | "needs_clarification";
-export type DeliveryPlan =
-  | "replace"
-  | "leave_unchanged"
-  | "ask_clarification"
-  | "preview"
-  | "abort";
+export type OptimizationStatus = "rewritten" | "unchanged";
+export type DeliveryPlan = "replace" | "leave_unchanged" | "preview" | "abort";
 export type ThemeName = "dark" | "light" | "system";
 export type MemoryFit = "comfortable" | "tight" | "unlikely" | "unknown";
 export type PresetCategory = "fast" | "balanced" | "quality";
@@ -48,7 +43,6 @@ export interface OptimizeOutcome {
   status: OptimizationStatus;
   originalText: string;
   rewrittenPrompt: string;
-  clarificationQuestion: string;
   delivery: DeliveryPlan;
   warnings: string[];
   durationMs: number;
@@ -171,7 +165,7 @@ export function defaultSettings(): AppSettings {
     defaultMode: "improve",
     autoReplace: true,
     previewBeforeReplace: false,
-    promptVersion: "1.0.0",
+    promptVersion: "1.2.0",
     ollamaEndpoint: "http://127.0.0.1:11434",
     activeModel: null,
     temperature: 0.2,

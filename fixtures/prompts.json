@@ -30,8 +30,8 @@
       "id": "user-decision",
       "category": "implement_feature",
       "input": "Implement user deletion, but I haven't decided whether it should be permanent or reversible.",
-      "illustrativeStatus": "needs_clarification",
-      "illustrativeQuestion": "Should user deletion be permanent or reversible?"
+      "illustrativeStatus": "rewritten",
+      "illustrativeRewrite": "Implement user deletion. The user has not chosen permanent or reversible deletion, so leave that choice open and do not pick one."
     }
   ]
 }

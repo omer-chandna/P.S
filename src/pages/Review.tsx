@@ -27,7 +27,6 @@ export function Review({
         status={attention.outcome.status}
         original={attention.outcome.originalText}
         rewritten={text}
-        question={attention.outcome.clarificationQuestion}
         warnings={attention.outcome.warnings}
         durationMs={attention.outcome.durationMs}
         promptTokens={attention.outcome.promptTokens}
@@ -55,7 +54,7 @@ export function Review({
             Replace selection
           </Button>
         ) : null}
-        <Button variant="secondary" onClick={() => void copyText(text || attention.outcome.clarificationQuestion)}>
+        <Button variant="secondary" onClick={() => void copyText(text)}>
           Copy
         </Button>
         <Button

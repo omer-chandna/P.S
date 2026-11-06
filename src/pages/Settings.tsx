@@ -138,7 +138,7 @@ export function Settings({
           onChange={(checked) => update("previewBeforeReplace", checked)}
         />
         <p className="text-xs leading-5 text-muted">
-          Unchanged prompts and clarification questions are never pasted. Suspicious rewrites open a review. Prompt version {draft.promptVersion}.
+          Unchanged prompts are never pasted. Suspicious rewrites open a review. Prompt version {draft.promptVersion}.
         </p>
       </Section>
 
