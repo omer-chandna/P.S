@@ -9,6 +9,10 @@ mod clipboard_io;
 mod input;
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "macos")]
+mod main_thread;
+#[cfg(target_os = "macos")]
+pub(crate) use main_thread::run as run_on_main_thread;
 #[cfg(target_os = "windows")]
 mod windows;
 

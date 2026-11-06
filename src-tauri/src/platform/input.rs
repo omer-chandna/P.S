@@ -2,6 +2,17 @@ use enigo::{Direction, Enigo, Key, Keyboard, Settings};
 use ps_core::{PsError, PsResult};
 
 pub fn chord(modifier: Key, key: char) -> PsResult<()> {
+    #[cfg(target_os = "macos")]
+    {
+        super::main_thread::run(move || press_chord(modifier, key))
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        press_chord(modifier, key)
+    }
+}
+
+fn press_chord(modifier: Key, key: char) -> PsResult<()> {
     let mut enigo = Enigo::new(&Settings {
         open_prompt_to_get_permissions: false,
         ..Settings::default()
