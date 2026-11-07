@@ -36,7 +36,7 @@ export function ResultView({
     return (
       <div
         className={cn(
-          "flex h-full min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-6 text-center",
+          "ps-phosphor flex h-full min-h-64 flex-col items-center justify-center gap-3 px-6 text-center",
           className,
         )}
       >
@@ -58,8 +58,8 @@ export function ResultView({
   return (
     <section
       className={cn(
-        "flex h-full min-h-64 flex-col overflow-hidden rounded-xl border bg-accent-soft",
-        status === "error" ? "border-danger/40" : "border-accent/35",
+        "flex h-full min-h-64 flex-col overflow-hidden",
+        status === "error" ? "ps-alarm" : "ps-phosphor",
         className,
       )}
     >

@@ -85,8 +85,8 @@ export function Onboarding({
   const runnable = models.filter((model) => model.runnable);
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 overflow-hidden bg-bg text-ink md:grid-cols-[232px_1fr]">
-      <aside className="flex gap-3 overflow-auto border-b border-[#2a3330] bg-[#141816] px-4 py-4 text-[#f4f6f1] md:flex-col md:gap-6 md:border-r md:border-b-0 md:px-4 md:py-6">
+    <div className="ps-deck grid h-full min-h-0 grid-cols-1 overflow-hidden text-ink md:grid-cols-[232px_1fr]">
+      <aside className="flex gap-3 overflow-auto border-b border-[#b6f5a8]/25 bg-[#0e1411] px-4 py-4 text-[#f4f6f1] shadow-[inset_-8px_0_16px_rgb(0_0_0/0.35)] md:flex-col md:gap-6 md:border-r md:border-b-0 md:px-4 md:py-6">
         <div className="flex shrink-0 items-center gap-2.5">
           <AppIcon framed className="h-10 w-10" />
           {isMacDesktop() ? null : <span className="text-lg font-semibold tracking-tight">P.S.</span>}
@@ -101,7 +101,9 @@ export function Onboarding({
                   onClick={() => go(index)}
                   className={cn(
                     "flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm font-medium transition-colors duration-150",
-                    current ? "bg-[#24352a] text-[#f4f6f1]" : "text-[#a7b2aa] hover:bg-[#1c2420] hover:text-[#f4f6f1]",
+                    current
+                      ? "bg-[#121a16] text-[#f4f6f1] shadow-[inset_3px_3px_8px_#070b09,inset_-2px_-2px_6px_#24302a]"
+                      : "text-[#a7b2aa] hover:bg-[#18211c] hover:text-[#f4f6f1]",
                   )}
                 >
                   <span
@@ -184,7 +186,7 @@ export function Onboarding({
               ) : (
                 <div className="grid gap-2">
                   {presets.map((preset) => (
-                    <div key={preset.model} className="rounded-xl border border-line bg-surface p-3">
+                    <div key={preset.model} className="ps-raised rounded-xl p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="inline-flex rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-ink">
@@ -220,11 +222,11 @@ export function Onboarding({
             <div className="max-w-lg space-y-4">
               <h1 className="text-3xl font-semibold tracking-tight">Shortcuts</h1>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-line bg-surface p-4">
+                <div className="ps-raised rounded-xl p-4">
                   <p className="text-sm text-muted">Improve</p>
                   <p className="mt-2 font-mono text-lg">{shortcuts?.improveDisplay ?? "Ctrl+Alt+P"}</p>
                 </div>
-                <div className="rounded-xl border border-line bg-surface p-4">
+                <div className="ps-raised rounded-xl p-4">
                   <p className="text-sm text-muted">Compact</p>
                   <p className="mt-2 font-mono text-lg">{shortcuts?.compactDisplay ?? "Ctrl+Alt+Shift+P"}</p>
                 </div>
@@ -303,17 +305,17 @@ export function Onboarding({
             <div className="max-w-lg space-y-5">
               <h1 className="text-3xl font-semibold tracking-tight">Ready</h1>
               <dl className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-line bg-surface p-4">
+                <div className="ps-raised rounded-xl p-4">
                   <dt className="text-sm text-muted">Model</dt>
                   <dd className="mt-1 font-mono text-sm">{settings.activeModel ?? "Not selected"}</dd>
                 </div>
-                <div className="rounded-xl border border-line bg-surface p-4">
+                <div className="ps-raised rounded-xl p-4">
                   <dt className="text-sm text-muted">Improve</dt>
                   <dd className="mt-1 font-mono text-sm">{shortcuts?.improveDisplay ?? "Ctrl+Alt+P"}</dd>
                 </div>
               </dl>
               <p className="text-sm leading-6 text-muted">Closing the window keeps P.S. running.</p>
-              <div className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm">
+              <div className="flex items-center justify-between gap-4 ps-raised rounded-xl px-4 py-3 text-sm">
                 <span>Launch at startup</span>
                 <Switch
                   checked={settings.launchAtStartup}

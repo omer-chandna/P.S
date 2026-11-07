@@ -20,7 +20,7 @@ export function ConfirmDialog({
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/55" />
-        <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-line bg-surface shadow-xl">
+        <DialogPrimitive.Content className="ps-raised fixed left-1/2 top-1/2 z-50 w-[min(420px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl">
           <div className="h-1 bg-accent" />
           <div className="p-5">
           <DialogPrimitive.Title className="text-base font-semibold">{title}</DialogPrimitive.Title>

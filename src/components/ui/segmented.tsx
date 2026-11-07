@@ -12,7 +12,7 @@ export function Segmented<T extends string>({
   label: string;
 }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex rounded-lg bg-surface-2 p-0.5">
+    <div role="group" aria-label={label} className="inline-flex rounded-lg bg-bg p-1 shadow-[var(--ps-inset)]">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -23,7 +23,7 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               "cursor-pointer rounded-md px-3 py-1 text-sm font-medium transition-[transform,background-color,color] duration-150 active:translate-y-px",
-              active ? "bg-accent text-accent-ink" : "text-muted hover:text-ink",
+              active ? "bg-accent text-accent-ink shadow-[var(--ps-key)]" : "text-muted hover:text-ink",
             )}
           >
             {option.label}
