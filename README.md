@@ -73,17 +73,27 @@ cd P.S
 npm install
 ```
 
+Have [Ollama](https://ollama.com/download) running on this computer before the first launch. The first window checks that connection, asks you to pick a model, then shows the shortcuts.
+
 ### macOS
 
 ```bash
 npm run installer:mac
 ```
 
-Open `target/aarch64-apple-darwin/release/bundle/dmg/PS_0.1.0_aarch64.dmg`. Drag **PS** to Applications, then open **PS** from Applications.
+The command builds a disk image and opens it. Copy **PS** into Applications yourself:
 
-In the app, choose **Enable Accessibility**. macOS lists the installed app as **PS**. Turn **PS** on under Privacy & Security, Accessibility. Quit and reopen PS if the shortcut does not respond yet.
+1. Drag **PS** from the disk image to **Applications**.
+2. Eject the disk image, then open **PS** from Applications.
+3. On the Shortcuts step, choose **Enable Accessibility**.
+4. In System Settings, go to Privacy & Security, then Accessibility, and turn **PS** on. The installed app is listed as **PS**.
+5. Quit P.S. and open it again from Applications.
 
-This build is unsigned. If macOS quarantines the app and blocks the first open, use System Settings, Privacy & Security, and choose Open Anyway.
+macOS grants Accessibility to one signed copy. After you install a new build, turn **PS** on again for that copy, then quit and reopen P.S.
+
+This build is unsigned. If macOS blocks the first open, use System Settings, Privacy & Security, and choose Open Anyway.
+
+Improve is Control+Option+P. Compact is Control+Option+Shift+P. Highlight text in another app, press the shortcut, and wait for the local model. Closing the window hides P.S. Quit from the menu bar.
 
 ### Windows
 
@@ -91,11 +101,11 @@ This build is unsigned. If macOS quarantines the app and blocks the first open, 
 npm run installer:win
 ```
 
-Run `target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe`. The installer adds **PS** to the Start menu for the current user.
+Run `target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe`. The installer adds **PS** to the Start menu for the current user. Open **PS** from the Start menu.
 
-This build is unsigned. If SmartScreen says Windows protected your PC, choose More info, then Run anyway.
+This build is unsigned. If SmartScreen says Windows protected your PC, choose More info, then Run anyway. Windows does not ask for a separate Accessibility permission.
 
-The first window walks through Ollama, a model, and the shortcut. Closing the window hides P.S. Quit from the menu bar or the tray.
+Improve is Ctrl+Alt+P. Compact is Ctrl+Alt+Shift+P. Closing the window hides P.S. Quit from the tray.
 
 ## Development
 
