@@ -61,7 +61,7 @@ export function Settings({
     <div className="flex min-h-0 flex-1 flex-col">
     <div className="min-h-0 flex-1 overflow-auto">
     <div className="mx-auto max-w-3xl px-5 py-6">
-      <h1 className="text-xl font-semibold tracking-tight">Settings</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-ink">Settings</h1>
       <div className="mt-5 space-y-4">
         <Section title="General">
           <Toggle
@@ -174,7 +174,7 @@ export function Settings({
           </div>
         </Section>
 
-        <section id="advanced-settings" className="scroll-mt-4 rounded-xl border border-line bg-surface px-4">
+        <section id="advanced-settings" className="scroll-mt-4 ps-raised rounded-xl px-4">
           <button
             type="button"
             className="flex w-full cursor-pointer items-center justify-between py-3 text-left text-sm font-semibold"
@@ -246,7 +246,7 @@ export function Settings({
     </div>
     </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-line bg-bg px-5 py-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-transparent bg-surface px-5 py-3 shadow-[0_-8px_18px_var(--ps-shadow)]">
         <Button onClick={() => void save()}>Save settings</Button>
         <Button variant="secondary" onClick={onReplaySetup}>
           Replay setup
@@ -259,8 +259,10 @@ export function Settings({
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-surface px-4">
-      <h2 className="border-b border-line py-3 text-sm font-semibold">{title}</h2>
+    <section className="ps-raised rounded-xl px-4">
+      <h2 className="border-b border-line py-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-accent">
+        {title}
+      </h2>
       <div className="divide-y divide-line">{children}</div>
     </section>
   );

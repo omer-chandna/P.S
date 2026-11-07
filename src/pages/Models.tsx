@@ -104,12 +104,12 @@ export function Models({
   return (
     <div className="min-h-0 flex-1 overflow-auto">
     <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-6">
-      <h1 className="text-xl font-semibold tracking-tight">Models</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-ink">Models</h1>
 
       <section>
-        <h2 className="text-sm font-semibold">Installed</h2>
+        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-accent">Installed</h2>
         {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
-        <div className="mt-3 overflow-hidden rounded-xl border border-line">
+        <div className="ps-raised mt-3 overflow-hidden rounded-xl">
           {models.length === 0 ? (
             <div className="flex flex-col items-center gap-2 bg-surface px-4 py-8">
               <AppIcon framed className="h-10 w-10" />
@@ -172,14 +172,14 @@ export function Models({
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold">Presets</h2>
+        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-accent">Presets</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {presets.map((preset) => (
             <article
               key={preset.model}
               className={cn(
-                "flex flex-col rounded-xl border bg-surface p-4 transition-colors duration-150",
-                preset.suggested ? "border-accent ring-1 ring-accent" : "border-line hover:border-accent/60",
+                "ps-raised flex flex-col rounded-xl p-4 transition-[box-shadow,border-color] duration-150",
+                preset.suggested ? "border-accent shadow-[var(--ps-raise),var(--ps-glow)]" : "hover:border-accent/60",
               )}
             >
               <div className="flex items-center justify-between gap-2">
@@ -245,8 +245,8 @@ export function Models({
         ) : null}
       </section>
 
-      <section className="rounded-xl border border-line bg-surface p-4">
-        <h2 className="text-sm font-semibold">Try a model</h2>
+      <section className="ps-raised rounded-xl p-4">
+        <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-accent">Try a model</h2>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="test-model">
             Model

@@ -55,7 +55,7 @@ export function Home({
         {shortcut ? <span className="ps-kbd">{shortcut}</span> : null}
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface transition-[border-color,box-shadow] duration-150 focus-within:border-accent focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ps-accent)_28%,transparent)]">
+        <section className="ps-screen flex min-h-0 flex-col transition-[box-shadow] duration-150">
           <textarea
             aria-label="Original prompt"
             value={text}

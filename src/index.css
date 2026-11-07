@@ -7,36 +7,50 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --ps-bg: #e7f0e4;
-  --ps-surface: #f7fbf5;
-  --ps-surface-2: #e1ebdc;
-  --ps-ink: #132018;
-  --ps-muted: #516157;
-  --ps-line: #cedace;
+  --ps-bg: #dfe8dc;
+  --ps-surface: #e8f1e6;
+  --ps-surface-2: #d3e0d3;
+  --ps-ink: #122016;
+  --ps-muted: #3e5347;
+  --ps-line: #c3d2c4;
   --ps-accent: #157a3c;
   --ps-accent-hover: #116532;
   --ps-accent-ink: #f4fbf6;
-  --ps-accent-soft: #d3f0db;
+  --ps-accent-soft: #d4edda;
   --ps-ok: #157a3c;
   --ps-warn: #8a5a10;
   --ps-danger: #a33b32;
+  --ps-shadow: #b4c6b6;
+  --ps-highlight: #f8fcf7;
+  --ps-raise: 6px 6px 14px var(--ps-shadow), -4px -4px 12px var(--ps-highlight);
+  --ps-inset: inset 4px 4px 8px var(--ps-shadow), inset -3px -3px 8px var(--ps-highlight);
+  --ps-key: inset 0 1px 0 rgb(255 255 255 / 42%), 0 3px 0 #0d4a28, 0 8px 16px rgb(21 122 60 / 22%);
+  --ps-key-press: inset 0 3px 6px rgb(8 40 20 / 35%);
+  --ps-glow: 0 0 0 1px rgb(21 122 60 / 45%), 0 0 18px rgb(21 122 60 / 22%);
   color-scheme: light;
 }
 
 .dark {
-  --ps-bg: #0c0f0d;
-  --ps-surface: #151a17;
-  --ps-surface-2: #1e2621;
-  --ps-ink: #f3f6f1;
-  --ps-muted: #9aa89e;
-  --ps-line: #2a3330;
-  --ps-accent: #b9e6a3;
-  --ps-accent-hover: #cdefbc;
-  --ps-accent-ink: #102117;
-  --ps-accent-soft: #1f3d2e;
-  --ps-ok: #b9e6a3;
+  --ps-bg: #101412;
+  --ps-surface: #18201c;
+  --ps-surface-2: #121916;
+  --ps-ink: #e8f6ec;
+  --ps-muted: #9cb3a4;
+  --ps-line: #2c3b33;
+  --ps-accent: #b6f5a8;
+  --ps-accent-hover: #d4ffc8;
+  --ps-accent-ink: #0c1a10;
+  --ps-accent-soft: #163028;
+  --ps-ok: #b6f5a8;
   --ps-warn: #e4c27a;
   --ps-danger: #f0a8a0;
+  --ps-shadow: #070a08;
+  --ps-highlight: #2a3a32;
+  --ps-raise: 7px 7px 16px var(--ps-shadow), -4px -4px 12px var(--ps-highlight);
+  --ps-inset: inset 5px 5px 12px #060807, inset -3px -3px 8px #243028;
+  --ps-key: inset 0 1px 0 rgb(255 255 255 / 35%), 0 3px 0 #0a3d22, 0 0 16px rgb(182 245 168 / 28%);
+  --ps-key-press: inset 0 3px 8px rgb(0 0 0 / 45%);
+  --ps-glow: 0 0 0 1px rgb(182 245 168 / 42%), 0 0 22px rgb(182 245 168 / 16%);
   color-scheme: dark;
 }
 
@@ -66,13 +80,27 @@ body,
 
 body {
   margin: 0;
-  background: var(--ps-bg);
+  background-color: var(--ps-bg);
+  background-image:
+    radial-gradient(ellipse at 70% -10%, color-mix(in srgb, var(--ps-accent) 18%, transparent), transparent 42%),
+    linear-gradient(color-mix(in srgb, var(--ps-accent) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ps-accent) 8%, transparent) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
   color: var(--ps-ink);
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: -0.014em;
   -webkit-font-smoothing: antialiased;
+}
+
+.ps-deck {
+  background-color: var(--ps-bg);
+  background-image:
+    radial-gradient(ellipse at 70% -10%, color-mix(in srgb, var(--ps-accent) 18%, transparent), transparent 42%),
+    linear-gradient(color-mix(in srgb, var(--ps-accent) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ps-accent) 8%, transparent) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
 }
 
 button,
@@ -94,11 +122,12 @@ select {
 @utility ps-field {
   height: 2.25rem;
   width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid var(--ps-line);
+  border-radius: 0.65rem;
+  border: 1px solid transparent;
   background: var(--ps-bg);
   padding-inline: 0.7rem;
   color: var(--ps-ink);
+  box-shadow: var(--ps-inset);
   outline: none;
   transition:
     border-color 150ms ease,
@@ -106,21 +135,22 @@ select {
 
   &:focus {
     border-color: var(--ps-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ps-accent) 28%, transparent);
+    box-shadow: var(--ps-inset), var(--ps-glow);
   }
 }
 
 @utility ps-editor {
   width: 100%;
   border-radius: 0.75rem;
-  border: 1px solid var(--ps-line);
-  background: var(--ps-surface);
+  border: 1px solid transparent;
+  background: var(--ps-bg);
   padding: 0.9rem 1rem;
   color: var(--ps-ink);
   font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.6;
   letter-spacing: 0;
+  box-shadow: var(--ps-inset);
   outline: none;
   caret-color: var(--ps-accent);
   transition:
@@ -133,22 +163,57 @@ select {
 
   &:focus {
     border-color: var(--ps-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ps-accent) 28%, transparent);
+    box-shadow: var(--ps-inset), var(--ps-glow);
   }
 }
 
 @utility ps-kbd {
   display: inline-flex;
   align-items: center;
-  border-radius: 0.375rem;
-  border: 1px solid var(--ps-line);
-  background: var(--ps-surface-2);
+  border-radius: 0.45rem;
+  border: 1px solid transparent;
+  background: var(--ps-surface);
   padding: 0.12rem 0.45rem;
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.4;
-  letter-spacing: 0;
+  letter-spacing: 0.04em;
   color: var(--ps-ink);
+  box-shadow: var(--ps-raise);
+}
+
+@utility ps-raised {
+  border: 1px solid color-mix(in srgb, var(--ps-highlight) 40%, var(--ps-line));
+  background: var(--ps-surface);
+  box-shadow: var(--ps-raise);
+}
+
+@utility ps-screen {
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ps-accent) 28%, transparent);
+  background: var(--ps-surface);
+  box-shadow: var(--ps-inset);
+
+  &:focus-within {
+    box-shadow: var(--ps-inset), var(--ps-glow);
+  }
+}
+
+@utility ps-phosphor {
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ps-accent) 48%, transparent);
+  background: var(--ps-accent-soft);
+  box-shadow: var(--ps-inset), var(--ps-glow);
+}
+
+@utility ps-alarm {
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ps-danger) 55%, transparent);
+  background: color-mix(in srgb, var(--ps-danger) 12%, var(--ps-surface));
+  box-shadow:
+    var(--ps-inset),
+    0 0 0 1px color-mix(in srgb, var(--ps-danger) 40%, transparent),
+    0 0 18px color-mix(in srgb, var(--ps-danger) 18%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
