@@ -18,12 +18,13 @@ export function Review({
     attention.pendingId !== null && attention.outcome.status === "rewritten" && text === attention.outcome.rewrittenPrompt;
 
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col gap-4">
+    <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-4 p-5">
       <div>
-        <h2 className="text-lg font-medium">Review</h2>
-        <p className="text-sm leading-6 text-muted">{attention.note}</p>
+        <h1 className="text-xl font-semibold tracking-tight">Review</h1>
+        <p className="mt-1 text-sm leading-6 text-muted">{attention.note}</p>
       </div>
       <ResultView
+        className="min-h-0 flex-1"
         status={attention.outcome.status}
         original={attention.outcome.originalText}
         rewritten={text}

@@ -4,18 +4,17 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-lg border text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-[transform,background-color,border-color,color,opacity] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:translate-y-px disabled:pointer-events-none disabled:opacity-40",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-ink text-bg hover:opacity-90",
-        accent: "border-transparent bg-accent text-bg hover:opacity-90",
-        secondary: "border-line bg-surface text-ink hover:bg-surface-2",
+        default: "border-transparent bg-accent text-accent-ink hover:bg-accent-hover",
+        secondary: "border-line bg-surface text-ink hover:border-accent/50 hover:bg-surface-2",
         ghost: "border-transparent bg-transparent text-muted hover:bg-surface-2 hover:text-ink",
-        danger: "border-transparent bg-danger text-bg hover:opacity-90",
+        danger: "border-transparent bg-danger text-bg hover:brightness-110",
       },
       size: {
-        default: "h-9 px-3",
+        default: "h-9 px-3.5",
         sm: "h-8 px-2.5 text-xs",
         lg: "h-10 px-4",
       },

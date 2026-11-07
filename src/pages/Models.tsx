@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { AppIcon } from "@/components/brand/Mark";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ResultView } from "@/components/optimizer/ResultView";
+import { Segmented } from "@/components/ui/segmented";
 import {
   activateModel,
   asFailure,
@@ -24,6 +26,11 @@ import type {
   OptimizeOutcome,
   PullProgress,
 } from "@/types";
+
+const MODES: Array<{ value: OptimizationMode; label: string }> = [
+  { value: "improve", label: "Improve" },
+  { value: "compact", label: "Compact" },
+];
 
 export function Models({
   settings,
@@ -89,110 +96,144 @@ export function Models({
     }
   }
 
+  const runnable = models.filter((model) => model.runnable);
+  const presets = hardware?.recommendations.presets ?? [];
+  const sharedNote =
+    presets.length > 0 && presets.every((preset) => preset.note === presets[0]?.note) ? presets[0]?.note : null;
+
   return (
-    <div className="space-y-6">
+    <div className="min-h-0 flex-1 overflow-auto">
+    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-5 py-6">
+      <h1 className="text-xl font-semibold tracking-tight">Models</h1>
+
       <section>
-        <h2 className="text-base font-medium">Installed models</h2>
-        <p className="mt-1 text-sm text-muted">Cloud models stay visible and cannot be selected.</p>
+        <h2 className="text-sm font-semibold">Installed</h2>
         {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
-        <div className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line">
+        <div className="mt-3 overflow-hidden rounded-xl border border-line">
           {models.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-muted">No installed models reported yet.</p>
+            <div className="flex flex-col items-center gap-2 bg-surface px-4 py-8">
+              <AppIcon framed className="h-10 w-10" />
+              <p className="text-sm text-muted">No local models yet</p>
+            </div>
           ) : (
-            models.map((model) => (
-              <div key={model.name} className="flex items-center justify-between gap-3 bg-surface px-4 py-3">
-                <div>
-                  <p className="font-medium">
-                    {model.name}{" "}
-                    {settings.activeModel === model.name ? (
-                      <span className="text-xs text-ok">Active</span>
-                    ) : null}
-                  </p>
-                  <p className="text-xs text-muted">
-                    {formatBytes(model.sizeBytes)}
-                    {model.parameterSize ? ` · ${model.parameterSize}` : ""}
-                    {model.cloud ? " · Cloud only" : ""}
-                  </p>
+            models.map((model) => {
+              const active = settings.activeModel === model.name;
+              return (
+                <div
+                  key={model.name}
+                  className={cn(
+                    "flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 last:border-b-0",
+                    active && "bg-accent-soft",
+                  )}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-sm font-medium">{model.name}</p>
+                    <p className="mt-0.5 font-mono text-[11px] text-muted">
+                      {formatBytes(model.sizeBytes)}
+                      {model.parameterSize ? ` · ${model.parameterSize}` : ""}
+                      {model.cloud ? " · Cloud" : ""}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {active ? (
+                      <span className="rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-ink">
+                        Active
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={!model.runnable}
+                        onClick={() => {
+                          void activateModel(model.name)
+                            .then(onSettings)
+                            .catch((caught: unknown) => {
+                              setError(asFailure(caught).message);
+                            });
+                        }}
+                      >
+                        Activate
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={!model.runnable}
+                      onClick={() => setPendingDelete(model.name)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={!model.runnable || settings.activeModel === model.name}
-                    onClick={() => {
-                      void activateModel(model.name).then(onSettings).catch((caught: unknown) => {
-                        setError(asFailure(caught).message);
-                      });
-                    }}
-                  >
-                    Activate
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={!model.runnable}
-                    onClick={() => setPendingDelete(model.name)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>
 
       <section>
-        <h2 className="text-base font-medium">Recommended presets</h2>
-        <p className="mt-1 max-w-3xl text-sm leading-6 text-muted">
-          These are starting candidates, not a measured ranking. Download size is not the memory a model uses while running.
-        </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-3">
-          {hardware?.recommendations.presets.map((preset) => (
+        <h2 className="text-sm font-semibold">Presets</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {presets.map((preset) => (
             <article
               key={preset.model}
               className={cn(
-                "rounded-2xl border bg-surface p-4",
-                preset.suggested ? "border-accent" : "border-line",
+                "flex flex-col rounded-xl border bg-surface p-4 transition-colors duration-150",
+                preset.suggested ? "border-accent ring-1 ring-accent" : "border-line hover:border-accent/60",
               )}
             >
-              <p className="text-xs uppercase tracking-[0.14em] text-muted">{preset.category}</p>
-              <h3 className="mt-1 font-medium">{preset.model}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">{preset.summary}</p>
-              <p className="mt-3 text-xs text-muted">
-                Download {preset.downloadSizeLabel} · runtime budget {formatBytes(preset.runtimeMemoryBytes)} · {fitLabel(preset.fit)}
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={cn(
+                    "rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                    categoryChip(preset.category),
+                  )}
+                >
+                  {preset.category}
+                </span>
+                {preset.suggested ? <span className="text-[11px] font-medium text-accent">Suggested</span> : null}
+              </div>
+              <h3 className="mt-3 font-mono text-sm font-medium">{preset.model}</h3>
+              <p className="mt-2 flex-1 text-sm leading-6 text-muted">{preset.summary}</p>
+              <p className="mt-3 font-mono text-[11px] leading-5 text-muted">
+                {preset.downloadSizeLabel} download
+                <br />
+                {formatBytes(preset.runtimeMemoryBytes)} runtime · {fitLabel(preset.fit)}
               </p>
-              <p className="mt-2 text-xs leading-5">{preset.note}</p>
-              <Button className="mt-4" size="sm" onClick={() => void install(preset.model)}>
+              {sharedNote ? null : <p className="mt-2 text-xs leading-5 text-muted">{preset.note}</p>}
+              <Button className="mt-4 w-full" size="sm" onClick={() => void install(preset.model)}>
                 Download
               </Button>
             </article>
           ))}
         </div>
         {hardware ? (
-          <ul className="mt-3 space-y-1 text-xs leading-5 text-muted">
-            {hardware.recommendations.notes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-            <li>
+          <div className="mt-3 space-y-1 text-xs leading-5 text-muted">
+            {sharedNote ? <p>{sharedNote}</p> : null}
+            {hardware.recommendations.notes
+              .filter((note) => note !== sharedNote)
+              .map((note) => (
+                <p key={note}>{note}</p>
+              ))}
+            <p>
               {hardware.hardware.totalMemoryBytes > 0
-                ? `Memory: ${formatBytes(hardware.hardware.availableMemoryBytes)} available of ${formatBytes(hardware.hardware.totalMemoryBytes)}`
-                : "System memory was not measured on this host."}
-              {hardware.hardware.appleSilicon ? " · Apple Silicon unified memory" : ""}
+                ? `${formatBytes(hardware.hardware.availableMemoryBytes)} free of ${formatBytes(hardware.hardware.totalMemoryBytes)}`
+                : "Memory was not measured on this host."}
+              {hardware.hardware.appleSilicon ? " · Apple Silicon" : ""}
               {hardware.hardware.gpuName ? ` · ${hardware.hardware.gpuName}` : ""}
-            </li>
-          </ul>
+            </p>
+          </div>
         ) : null}
         {pull ? (
-          <div className="mt-4 rounded-2xl border border-line bg-surface p-4">
-            <div className="flex items-center justify-between text-sm">
+          <div className="mt-4">
+            <div className="flex items-center justify-between font-mono text-xs">
               <span>
-                {pull.model}: {pull.status}
+                {pull.model} · {pull.status}
               </span>
               <span>{pull.percent ?? 0}%</span>
             </div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
-              <div className="h-full bg-accent" style={{ width: `${pull.percent ?? 0}%` }} />
+              <div className="h-full bg-accent transition-[width] duration-150" style={{ width: `${pull.percent ?? 0}%` }} />
             </div>
             {pull.error ? <p className="mt-2 text-sm text-danger">{pull.error}</p> : null}
             {!pull.done ? (
@@ -204,45 +245,29 @@ export function Models({
         ) : null}
       </section>
 
-      <section className="rounded-2xl border border-line bg-surface p-4">
-        <h2 className="text-base font-medium">Test model</h2>
-        <p className="mt-1 text-sm text-muted">
-          Compare one result at a time. P.S. does not score or rank models.
-        </p>
+      <section className="rounded-xl border border-line bg-surface p-4">
+        <h2 className="text-sm font-semibold">Try a model</h2>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <label className="text-sm text-muted" htmlFor="test-model">
+          <label className="sr-only" htmlFor="test-model">
             Model
           </label>
           <select
             id="test-model"
             value={testModel}
             onChange={(event) => setTestModel(event.target.value)}
-            className="h-9 rounded-lg border border-line bg-bg px-2"
+            className="ps-field w-auto min-w-40 font-mono text-xs"
           >
             <option value="">Select a model</option>
-            {models
-              .filter((model) => model.runnable)
-              .map((model) => (
-                <option key={model.name} value={model.name}>
-                  {model.name}
-                </option>
-              ))}
+            {runnable.map((model) => (
+              <option key={model.name} value={model.name}>
+                {model.name}
+              </option>
+            ))}
             {models.every((model) => model.name !== testModel) && testModel ? (
               <option value={testModel}>{testModel}</option>
             ) : null}
           </select>
-          <div className="flex rounded-lg border border-line p-0.5">
-            {(["improve", "compact"] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={cn("rounded-md px-3 py-1 text-sm capitalize", mode === item && "bg-surface-2")}
-                onClick={() => setMode(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
+          <Segmented label="Trial mode" value={mode} options={MODES} onChange={setMode} />
           <Button
             size="sm"
             disabled={busy || !testModel || !sample.trim()}
@@ -261,12 +286,13 @@ export function Models({
         <textarea
           aria-label="Sample prompt"
           value={sample}
+          spellCheck={false}
           onChange={(event) => setSample(event.target.value)}
-          className="mt-3 min-h-28 w-full rounded-xl border border-line bg-bg px-3 py-2 leading-6 outline-none focus:border-accent"
+          className="ps-editor mt-3 min-h-28 resize-y"
         />
         {outcome ? (
           <div className="mt-3">
-            <p className="mb-2 text-xs text-muted">
+            <p className="mb-2 font-mono text-[11px] text-muted">
               {outcome.status} · {formatDuration(outcome.durationMs)}
               {outcome.promptTokens != null ? ` · ${outcome.promptTokens} in` : ""}
               {outcome.completionTokens != null ? ` · ${outcome.completionTokens} out` : ""}
@@ -310,5 +336,16 @@ export function Models({
         }}
       />
     </div>
+    </div>
   );
+}
+
+function categoryChip(category: string): string {
+  if (category === "fast") {
+    return "bg-[#d6f58a] text-[#1c2a12]";
+  }
+  if (category === "quality") {
+    return "bg-[#6fbf9a] text-[#102117]";
+  }
+  return "bg-accent text-accent-ink";
 }

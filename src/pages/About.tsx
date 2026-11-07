@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
+import { AppIcon } from "@/components/brand/Mark";
 import { appInfo, openExternal } from "@/lib/api";
 import type { AppInfo } from "@/types";
+
+const LINKS = [
+  { label: "Ollama", href: "https://ollama.com/download" },
+  { label: "Ollama API", href: "https://docs.ollama.com/" },
+  { label: "Ollama source", href: "https://github.com/ollama/ollama" },
+];
 
 export function About() {
   const [info, setInfo] = useState<AppInfo | null>(null);
@@ -9,61 +16,47 @@ export function About() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
-      <div>
-        <p className="text-3xl font-semibold tracking-tight">P.S.</p>
-        <p className="mt-1 text-muted">Local Prompt Optimizer</p>
-      </div>
-      <p className="text-base leading-7">
-        Make every instruction earn its place in the prompt. P.S. improves a selected prompt only when that helps a coding agent finish the task, and it leaves an effective prompt unchanged.
+    <div className="mx-auto min-h-0 w-full max-w-xl flex-1 overflow-auto px-6 py-8">
+      <AppIcon className="h-16 w-16" />
+      <h1 className="mt-5 text-3xl font-semibold tracking-tight">P.S.</h1>
+      <p className="mt-2 text-muted">Local prompt optimizer</p>
+      <p className="mt-6 max-w-md text-base leading-7">
+        Rewrites a selected prompt on this machine when that helps a coding agent, and leaves an effective prompt unchanged.
       </p>
-      <ul className="space-y-2 text-sm leading-6 text-muted">
-        <li>Inference stays on this machine. There is no account and no cloud model fallback.</li>
-        <li>Selected prompts are not saved to disk or written to logs.</li>
-        <li>A rewrite that drops a path, version, or explicit constraint is held for review.</li>
-        <li>P.S. never submits the prompt to Cursor, Claude Code, Codex, or any other agent.</li>
-      </ul>
-      <dl className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <dt className="text-muted">Version</dt>
-          <dd>{info?.version ?? "…"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Prompt version</dt>
-          <dd>{info?.promptVersion ?? "1.2.0"}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">System</dt>
-          <dd>
-            {info?.os} {info?.arch}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-muted">Supported target</dt>
-          <dd>{info?.supportedPlatform ? "Yes" : "Development host"}</dd>
-        </div>
+      <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <Fact label="Version" value={info?.version ?? "…"} />
+        <Fact label="Prompt" value={info?.promptVersion ?? "1.2.0"} />
+        <Fact label="System" value={info ? `${info.os} ${info.arch}` : "…"} />
+        <Fact label="Target" value={info ? (info.supportedPlatform ? "Supported" : "Development") : "…"} />
       </dl>
-      {!info?.supportedPlatform ? (
-        <p className="text-sm leading-6 text-muted">
-          Selection capture and installers target Apple Silicon macOS 14+ and Windows 11 x64. This session can still exercise the optimizer, model manager, and interface.
-        </p>
-      ) : null}
-      <div className="flex flex-wrap gap-3 text-sm">
-        <button type="button" className="text-accent" onClick={() => void openExternal("https://ollama.com/download")}>
-          Ollama
-        </button>
-        <button type="button" className="text-accent" onClick={() => void openExternal("https://docs.ollama.com/")}>
-          Ollama API
-        </button>
-        <button
-          type="button"
-          className="text-accent"
-          onClick={() => void openExternal("https://github.com/ollama/ollama")}
-        >
-          Ollama source
-        </button>
+      <p className="mt-6 text-sm leading-6 text-muted">
+        Prompts stay on this computer. P.S. does not send them to an agent.
+        {info && !info.supportedPlatform
+          ? " Selection capture targets Apple Silicon macOS and Windows 11."
+          : ""}
+      </p>
+      <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+        {LINKS.map((link) => (
+          <button
+            key={link.href}
+            type="button"
+            className="cursor-pointer text-sm font-medium text-accent underline decoration-transparent underline-offset-4 transition-colors duration-150 hover:decoration-current"
+            onClick={() => void openExternal(link.href)}
+          >
+            {link.label}
+          </button>
+        ))}
       </div>
-      <p className="text-xs text-muted">Released under the MIT license.</p>
+      <p className="mt-8 text-xs text-muted">MIT license</p>
+    </div>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-0.5 font-medium">{value}</dd>
     </div>
   );
 }

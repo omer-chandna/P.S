@@ -1,10 +1,16 @@
 import { useState } from "react";
+import { MenuMark } from "@/components/brand/Mark";
 import { ResultView } from "@/components/optimizer/ResultView";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { asFailure, cancelOptimization, copyText, optimizeText } from "@/lib/api";
 import { approximateTokens } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import type { OptimizationMode, OptimizeOutcome, ShortcutInfo } from "@/types";
+
+const MODES: Array<{ value: OptimizationMode; label: string }> = [
+  { value: "improve", label: "Improve" },
+  { value: "compact", label: "Compact" },
+];
 
 export function Home({
   modelName,
@@ -39,78 +45,62 @@ export function Home({
     }
   }
 
-  const shortcut =
-    mode === "compact" ? shortcuts?.compactDisplay : shortcuts?.improveDisplay;
+  const shortcut = mode === "compact" ? shortcuts?.compactDisplay : shortcuts?.improveDisplay;
 
   return (
-    <div className="grid h-full min-h-0 gap-4 xl:grid-cols-2">
-      <section className="flex min-h-0 flex-col">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-medium">Manual optimizer</h2>
-            <p className="text-sm text-muted">
-              {modelName ? `Using ${modelName}` : "Choose a model before running inference."}
+    <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+      <h1 className="sr-only">Optimize a prompt</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Segmented label="Mode" value={mode} options={MODES} onChange={setMode} />
+        {shortcut ? <span className="ps-kbd">{shortcut}</span> : null}
+      </div>
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface transition-[border-color,box-shadow] duration-150 focus-within:border-accent focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ps-accent)_28%,transparent)]">
+          <textarea
+            aria-label="Original prompt"
+            value={text}
+            spellCheck={false}
+            onChange={(event) => setText(event.target.value)}
+            placeholder="Paste a prompt"
+            className="min-h-40 flex-1 resize-none bg-transparent px-4 py-3 font-mono text-[13px] leading-6 text-ink caret-accent outline-none placeholder:text-muted"
+          />
+          <div className="flex items-center justify-between gap-3 border-t border-line px-3 py-2.5">
+            <p className="font-mono text-[11px] text-muted">
+              {text.length} chars · ~{text.trim() ? approximateTokens(text) : 0} tok
+              {notice ? <span className="ml-2 text-ok">{notice}</span> : null}
             </p>
-          </div>
-          <div className="flex rounded-lg border border-line p-0.5">
-            {(["improve", "compact"] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setMode(item)}
-                className={cn(
-                  "rounded-md px-3 py-1 text-sm capitalize",
-                  mode === item ? "bg-surface-2 text-ink" : "text-muted",
-                )}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-        <textarea
-          aria-label="Original prompt"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder="Paste a prompt to improve, or leave a clear one unchanged."
-          className="min-h-72 flex-1 resize-none rounded-2xl border border-line bg-surface px-4 py-3 leading-6 outline-none focus:border-accent"
-        />
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-xs text-muted">
-            {text.length} characters · about {text.trim() ? approximateTokens(text) : 0} tokens
-            {shortcut ? ` · ${shortcut}` : ""}
-          </p>
-          <div className="flex gap-2">
-            {busy ? (
-              <Button variant="secondary" onClick={() => void cancelOptimization()}>
-                Cancel
+            <div className="flex gap-2">
+              {busy ? (
+                <Button variant="secondary" onClick={() => void cancelOptimization()}>
+                  Cancel
+                </Button>
+              ) : null}
+              <Button onClick={() => void run()} disabled={busy || text.trim().length === 0}>
+                <MenuMark onAccent className="h-3.5 w-3.5" />
+                {busy ? "Optimizing…" : "Optimize"}
               </Button>
-            ) : null}
-            <Button onClick={() => void run()} disabled={busy || text.trim().length === 0}>
-              {busy ? "Optimizing…" : "Optimize"}
-            </Button>
+            </div>
           </div>
-        </div>
-        {notice ? <p className="mt-2 text-sm text-ok">{notice}</p> : null}
-      </section>
-      <ResultView
-        status={error ? "error" : outcome ? outcome.status : "idle"}
-        original={outcome?.originalText ?? text}
-        rewritten={edited}
-        warnings={outcome?.warnings}
-        message={error ?? undefined}
-        durationMs={outcome?.durationMs}
-        promptTokens={outcome?.promptTokens}
-        completionTokens={outcome?.completionTokens}
-        suspicious={outcome?.suspicious}
-        onChangeRewritten={outcome?.status === "rewritten" ? setEdited : undefined}
-        onCopy={(value) => {
-          void copyText(value).then(
-            () => setNotice("Copied."),
-            (caught: unknown) => setError(asFailure(caught).message),
-          );
-        }}
-      />
+        </section>
+        <ResultView
+          status={error ? "error" : outcome ? outcome.status : "idle"}
+          original={outcome?.originalText ?? text}
+          rewritten={edited}
+          warnings={outcome?.warnings}
+          message={error ?? undefined}
+          durationMs={outcome?.durationMs}
+          promptTokens={outcome?.promptTokens}
+          completionTokens={outcome?.completionTokens}
+          suspicious={outcome?.suspicious}
+          onChangeRewritten={outcome?.status === "rewritten" ? setEdited : undefined}
+          onCopy={(value) => {
+            void copyText(value).then(
+              () => setNotice("Copied."),
+              (caught: unknown) => setError(asFailure(caught).message),
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }

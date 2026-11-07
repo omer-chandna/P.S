@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.6",
-    "@fontsource/ibm-plex-sans": "^5.2.7",
+    "@fontsource/outfit": "^5.3.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.6",
