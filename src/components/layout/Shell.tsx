@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Cpu, House, Info, Settings } from "lucide-react";
 import { AppIcon } from "@/components/brand/Mark";
 import { inTauri } from "@/lib/api";
+import { isMacDesktop } from "@/lib/desktop";
 import { cn } from "@/lib/utils";
 import type { ConnectionStatus } from "@/types";
 
@@ -36,11 +37,12 @@ export function Shell({
       <nav className="flex w-[212px] shrink-0 flex-col border-r border-[#2a3330] bg-[#141816] px-3 py-4 text-[#f4f6f1]">
         <button
           type="button"
+          aria-label="P.S."
           onClick={() => onNavigate("home")}
           className="flex cursor-pointer items-center gap-2.5 rounded-lg px-1.5 py-1 text-left"
         >
           <AppIcon framed className="h-9 w-9" />
-          <span className="text-base font-semibold tracking-tight">P.S.</span>
+          {isMacDesktop() ? null : <span className="text-base font-semibold tracking-tight">P.S.</span>}
         </button>
         <div className="mt-7 flex flex-col gap-1">
           {NAV.map((item) => {

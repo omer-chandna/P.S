@@ -7,7 +7,7 @@ use tauri::{AppHandle, Emitter, Manager};
 
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let menu = build_menu(app)?;
-    let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
+    let icon = tray_icon()?;
     let builder = TrayIconBuilder::with_id("ps")
         .menu(&menu)
         .tooltip("P.S. Local Prompt Optimizer")
@@ -34,6 +34,17 @@ pub fn rebuild(app: &AppHandle) {
     };
     if let Some(tray) = app.tray_by_id("ps") {
         let _ = tray.set_menu(Some(menu));
+    }
+}
+
+fn tray_icon() -> tauri::Result<tauri::image::Image<'static>> {
+    #[cfg(target_os = "macos")]
+    {
+        tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        tauri::image::Image::from_bytes(include_bytes!("../icons/32x32.png"))
     }
 }
 
