@@ -81,7 +81,11 @@ Have [Ollama](https://ollama.com/download) running on this computer before the f
 npm run installer:mac
 ```
 
-The command builds a disk image and opens it. Copy **PS** into Applications yourself:
+Open this disk image. The command opens it when the build finishes.
+
+```text
+target/aarch64-apple-darwin/release/bundle/dmg/PS_0.1.0_aarch64.dmg
+```
 
 1. Drag **PS** from the disk image to **Applications**.
 2. Eject the disk image, then open **PS** from Applications.
@@ -101,7 +105,13 @@ Improve is Control+Option+P. Compact is Control+Option+Shift+P. Highlight text i
 npm run installer:win
 ```
 
-Run `target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe`. The installer adds **PS** to the Start menu for the current user. Open **PS** from the Start menu.
+Run this installer:
+
+```text
+target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe
+```
+
+The installer adds **PS** to the Start menu for the current user. Open **PS** from the Start menu.
 
 This build is unsigned. If SmartScreen says Windows protected your PC, choose More info, then Run anyway. Windows does not ask for a separate Accessibility permission.
 
@@ -121,7 +131,7 @@ Install [Ollama](https://ollama.com/download) and leave it running on this compu
 
 The only accepted addresses are loopback. The default is `http://127.0.0.1:11434`. `localhost` and `::1` are accepted. A public host, a path, or a username in the URL is rejected.
 
-![Model manager with Fast, Balanced, and Quality suggestions](docs/images/models.png)
+![Models page, with installed models and the Fast, Balanced, and Quality presets](docs/images/models.png)
 
 The suggestions are starting points, not a ranking. Download size is the registry file. The runtime budget is a conservative reserve used to phrase the suggestion, and it is larger than the download.
 
