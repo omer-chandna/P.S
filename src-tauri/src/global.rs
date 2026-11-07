@@ -1,5 +1,6 @@
 use crate::platform::{self, host};
 use crate::state::{AppState, Attention, OptimizeOutcome};
+use crate::tones::{self, Tone};
 use crate::tray;
 use ps_core::clipboard::selection_matches;
 use ps_core::mode::OptimizationMode;
@@ -17,6 +18,7 @@ use uuid::Uuid;
 pub fn spawn(app: AppHandle, mode: OptimizationMode) {
     tauri::async_runtime::spawn(async move {
         if let Err(error) = run_global(&app, mode).await {
+            tones::play(Tone::End);
             notify(&app, &error.to_string());
             let _ = app.emit("ps://notice", error.to_string());
         }
@@ -146,6 +148,7 @@ async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
 
     if lease.is_cancelled() {
         notify(app, "Optimization cancelled.");
+        tones::play(Tone::End);
         return Ok(());
     }
 
@@ -164,6 +167,7 @@ async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
 
     if lease.is_cancelled() || !state.operations.is_current(lease.id()) {
         notify(app, "Optimization cancelled.");
+        tones::play(Tone::End);
         return Ok(());
     }
 
@@ -206,11 +210,16 @@ async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
                     "The rewrite could not be pasted. Copy it from P.S. instead.",
                 );
                 notify(app, &error.to_string());
+                tones::play(Tone::End);
             } else {
                 notify(app, "Prompt updated");
+                tones::play(Tone::Finish);
             }
         }
-        DeliveryPlan::LeaveUnchanged => notify(app, "Already clear"),
+        DeliveryPlan::LeaveUnchanged => {
+            notify(app, "Already clear");
+            tones::play(Tone::End);
+        }
         DeliveryPlan::Preview => {
             let note = preview_note(&analysis, &context);
             stage_review(
@@ -220,8 +229,12 @@ async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
                 &note,
             );
             notify(app, "Review the rewrite");
+            tones::play(Tone::Finish);
         }
-        DeliveryPlan::Abort => notify(app, "The optimization was not applied."),
+        DeliveryPlan::Abort => {
+            notify(app, "The optimization was not applied.");
+            tones::play(Tone::End);
+        }
     }
     Ok(())
 }

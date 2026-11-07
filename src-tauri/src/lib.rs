@@ -4,6 +4,7 @@ mod hotkeys;
 mod persist;
 mod platform;
 mod state;
+mod tones;
 mod tray;
 
 use commands::{

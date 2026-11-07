@@ -18,6 +18,7 @@ import {
   shortcutInfo,
   updateSettings,
 } from "@/lib/api";
+import { isMacDesktop } from "@/lib/desktop";
 import { cn } from "@/lib/utils";
 import { SAMPLE_CLEAR, SAMPLE_VAGUE } from "@/lib/samples";
 import type {
@@ -88,7 +89,7 @@ export function Onboarding({
       <aside className="flex gap-3 overflow-auto border-b border-[#2a3330] bg-[#141816] px-4 py-4 text-[#f4f6f1] md:flex-col md:gap-6 md:border-r md:border-b-0 md:px-4 md:py-6">
         <div className="flex shrink-0 items-center gap-2.5">
           <AppIcon framed className="h-10 w-10" />
-          <span className="text-lg font-semibold tracking-tight">P.S.</span>
+          {isMacDesktop() ? null : <span className="text-lg font-semibold tracking-tight">P.S.</span>}
         </div>
         <ol className="flex gap-1 md:flex-col">
           {STEPS.map((label, index) => {
