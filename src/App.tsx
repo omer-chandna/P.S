@@ -5,13 +5,13 @@ import {
   finishOnboarding,
   getAttention,
   getSettings,
-  inTauri,
   ollamaStatus,
   onAttention,
   onNavigate,
   shortcutInfo,
   updateSettings,
 } from "@/lib/api";
+import { AppIcon } from "@/components/brand/Mark";
 import { About } from "@/pages/About";
 import { Home } from "@/pages/Home";
 import { Models } from "@/pages/Models";
@@ -93,23 +93,25 @@ export function App() {
   }, []);
 
   if (!ready) {
-    return <div className="grid h-full place-items-center text-sm text-muted">Opening P.S.</div>;
+    return (
+      <div className="grid h-full place-items-center bg-[#141816]">
+        <AppIcon className="h-14 w-14" />
+      </div>
+    );
   }
 
   if (setup) {
     return (
-      <div className="h-full bg-bg px-6 text-ink">
-        <Onboarding
-          settings={settings}
-          onSettings={setSettings}
-          onFinished={() => {
-            void finishOnboarding(settings).then((saved) => {
-              setSettings(saved);
-              setSetup(false);
-            });
-          }}
-        />
-      </div>
+      <Onboarding
+        settings={settings}
+        onSettings={setSettings}
+        onFinished={() => {
+          void finishOnboarding(settings).then((saved) => {
+            setSettings(saved);
+            setSetup(false);
+          });
+        }}
+      />
     );
   }
 
@@ -122,13 +124,8 @@ export function App() {
       }}
       connection={connection}
       modelName={settings.activeModel}
+      banner={loadError}
     >
-      {!inTauri() ? (
-        <p className="mb-4 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-muted">
-          Browser preview. Ollama, shortcuts, and text replacement run in the desktop shell.
-        </p>
-      ) : null}
-      {loadError ? <p className="mb-4 text-sm text-danger">{loadError}</p> : null}
       {attention ? (
         <Review attention={attention} onClose={() => setAttention(null)} />
       ) : page === "home" ? (

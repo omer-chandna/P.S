@@ -1,43 +1,47 @@
 @import "tailwindcss";
-@import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
-@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/outfit/latin-400.css";
+@import "@fontsource/outfit/latin-500.css";
+@import "@fontsource/outfit/latin-600.css";
 @import "@fontsource/ibm-plex-mono/400.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --ps-bg: #f4f2ec;
-  --ps-surface: #fffcf7;
-  --ps-surface-2: #efece4;
-  --ps-ink: #1d1c19;
-  --ps-muted: #6f6a62;
-  --ps-line: #e3ded3;
-  --ps-accent: #8d5a2b;
-  --ps-accent-soft: #f3e6d4;
-  --ps-ok: #246348;
-  --ps-warn: #8a5a12;
-  --ps-danger: #8c3b32;
+  --ps-bg: #e7f0e4;
+  --ps-surface: #f7fbf5;
+  --ps-surface-2: #e1ebdc;
+  --ps-ink: #132018;
+  --ps-muted: #516157;
+  --ps-line: #cedace;
+  --ps-accent: #157a3c;
+  --ps-accent-hover: #116532;
+  --ps-accent-ink: #f4fbf6;
+  --ps-accent-soft: #d3f0db;
+  --ps-ok: #157a3c;
+  --ps-warn: #8a5a10;
+  --ps-danger: #a33b32;
   color-scheme: light;
 }
 
 .dark {
-  --ps-bg: #101114;
-  --ps-surface: #17191d;
-  --ps-surface-2: #21242a;
-  --ps-ink: #f4f1ea;
-  --ps-muted: #aaa49a;
-  --ps-line: #2d3138;
-  --ps-accent: #e2b484;
-  --ps-accent-soft: #3a2d22;
-  --ps-ok: #9dceb6;
-  --ps-warn: #e4c48a;
-  --ps-danger: #efaaa2;
+  --ps-bg: #0c0f0d;
+  --ps-surface: #151a17;
+  --ps-surface-2: #1e2621;
+  --ps-ink: #f3f6f1;
+  --ps-muted: #9aa89e;
+  --ps-line: #2a3330;
+  --ps-accent: #b9e6a3;
+  --ps-accent-hover: #cdefbc;
+  --ps-accent-ink: #102117;
+  --ps-accent-soft: #1f3d2e;
+  --ps-ok: #b9e6a3;
+  --ps-warn: #e4c27a;
+  --ps-danger: #f0a8a0;
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --color-bg: var(--ps-bg);
   --color-surface: var(--ps-surface);
@@ -46,6 +50,8 @@
   --color-muted: var(--ps-muted);
   --color-line: var(--ps-line);
   --color-accent: var(--ps-accent);
+  --color-accent-hover: var(--ps-accent-hover);
+  --color-accent-ink: var(--ps-accent-ink);
   --color-accent-soft: var(--ps-accent-soft);
   --color-ok: var(--ps-ok);
   --color-warn: var(--ps-warn);
@@ -64,7 +70,9 @@ body {
   color: var(--ps-ink);
   font-family: var(--font-sans);
   font-size: 14px;
-  letter-spacing: -0.011em;
+  line-height: 1.5;
+  letter-spacing: -0.014em;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -75,5 +83,79 @@ select {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--ps-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--ps-accent) 40%, transparent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ps-line) transparent;
+}
+
+@utility ps-field {
+  height: 2.25rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ps-line);
+  background: var(--ps-bg);
+  padding-inline: 0.7rem;
+  color: var(--ps-ink);
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &:focus {
+    border-color: var(--ps-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ps-accent) 28%, transparent);
+  }
+}
+
+@utility ps-editor {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--ps-line);
+  background: var(--ps-surface);
+  padding: 0.9rem 1rem;
+  color: var(--ps-ink);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  outline: none;
+  caret-color: var(--ps-accent);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &::placeholder {
+    color: var(--ps-muted);
+  }
+
+  &:focus {
+    border-color: var(--ps-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ps-accent) 28%, transparent);
+  }
+}
+
+@utility ps-kbd {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.375rem;
+  border: 1px solid var(--ps-line);
+  background: var(--ps-surface-2);
+  padding: 0.12rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--ps-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

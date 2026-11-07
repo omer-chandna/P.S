@@ -1,4 +1,6 @@
+import { AppIcon } from "@/components/brand/Mark";
 import { approximateTokens, formatDuration, statusLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { OptimizationStatus } from "@/types";
 
 export interface ResultViewProps {
@@ -13,6 +15,7 @@ export interface ResultViewProps {
   suspicious?: boolean;
   onCopy?: (text: string) => void;
   onChangeRewritten?: (value: string) => void;
+  className?: string;
 }
 
 export function ResultView({
@@ -27,97 +30,116 @@ export function ResultView({
   suspicious = false,
   onCopy,
   onChangeRewritten,
+  className,
 }: ResultViewProps) {
   if (status === "idle") {
     return (
-      <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-line px-6 text-center text-sm leading-6 text-muted">
-        A clear prompt can stay exactly as it is. P.S. only rewrites when that helps the next agent.
+      <div
+        className={cn(
+          "flex h-full min-h-64 flex-col items-center justify-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-6 text-center",
+          className,
+        )}
+      >
+        <AppIcon framed className="h-12 w-12" />
+        <p className="text-sm text-muted">No result yet</p>
       </div>
     );
   }
 
-  if (status === "error") {
-    return (
-      <section className="rounded-2xl border border-line bg-surface p-4">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-danger">Could not optimize</p>
-        <p className="mt-2 text-sm leading-6">{message}</p>
-        <p className="mt-3 text-sm leading-6 text-muted">The original text was left unchanged.</p>
-      </section>
-    );
-  }
+  const meta = [
+    durationMs !== undefined ? formatDuration(durationMs) : null,
+    promptTokens != null || completionTokens != null
+      ? `${promptTokens ?? "—"} in / ${completionTokens ?? "—"} out`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4">
-      <div className="flex items-center justify-between gap-3">
-        <p
-          className={`text-xs font-medium uppercase tracking-[0.14em] ${
-            status === "unchanged" ? "text-ok" : "text-accent"
-          }`}
-        >
-          {statusLabel(status)}
-          {suspicious ? " · review" : ""}
-        </p>
-        <p className="text-xs text-muted">
-          {durationMs !== undefined ? formatDuration(durationMs) : null}
-          {promptTokens != null || completionTokens != null
-            ? ` · ${promptTokens ?? "—"} in / ${completionTokens ?? "—"} out`
-            : null}
-        </p>
-      </div>
-
-      {status === "unchanged" ? (
-        <div>
-          <h2 className="text-sm font-medium">Original prompt</h2>
-          <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-6">{original}</pre>
-          <p className="mt-3 text-sm text-muted">Nothing was pasted back into the editor.</p>
+    <section
+      className={cn(
+        "flex h-full min-h-64 flex-col overflow-hidden rounded-xl border bg-accent-soft",
+        status === "error" ? "border-danger/40" : "border-accent/35",
+        className,
+      )}
+    >
+      <header className="flex shrink-0 items-center justify-between gap-3 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <p
+            className={cn(
+              "rounded-md px-2 py-0.5 text-[11px] font-semibold",
+              status === "error" ? "bg-danger text-bg" : "bg-accent text-accent-ink",
+            )}
+          >
+            {status === "error" ? "Could not optimize" : statusLabel(status)}
+          </p>
+          {suspicious ? <span className="text-xs font-medium text-warn">Review</span> : null}
         </div>
-      ) : null}
-
-      {status === "rewritten" ? (
-        <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-2">
-          <div className="min-h-0">
-            <h2 className="text-sm font-medium text-muted">Original</h2>
-            <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap font-sans text-sm leading-6 text-muted">
+        {meta ? <p className="font-mono text-[11px] text-muted">{meta}</p> : null}
+      </header>
+      <div className="@container min-h-0 flex-1 overflow-auto px-4 pb-4">
+        {status === "error" ? (
+          <div>
+            <p className="text-sm leading-6">{message}</p>
+            <pre className="mt-3 whitespace-pre-wrap break-words font-mono text-[13px] leading-6 text-muted">
               {original}
             </pre>
+            <p className="mt-3 text-sm text-muted">The original was left unchanged.</p>
           </div>
-          <div className="min-h-0">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium">Optimized</h2>
-              {onCopy ? (
-                <button
-                  type="button"
-                  className="text-xs text-accent"
-                  onClick={() => onCopy(rewritten)}
-                >
-                  Copy
-                </button>
-              ) : null}
-            </div>
-            {onChangeRewritten ? (
-              <textarea
-                aria-label="Optimized prompt"
-                value={rewritten}
-                onChange={(event) => onChangeRewritten(event.target.value)}
-                className="mt-2 min-h-40 w-full resize-y rounded-xl border border-line bg-bg px-3 py-2 text-sm leading-6 outline-none focus:border-accent"
-              />
-            ) : (
-              <pre className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap font-sans text-sm leading-6">
-                {rewritten}
-              </pre>
-            )}
-            <p className="mt-2 text-xs text-muted">About {approximateTokens(rewritten)} tokens</p>
-          </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {warnings.length > 0 ? (
-        <ul className="space-y-1 rounded-xl bg-accent-soft px-3 py-2 text-xs leading-5 text-ink">
-          {warnings.map((warning) => (
-            <li key={warning}>{warning}</li>
-          ))}
-        </ul>
-      ) : null}
+        {status === "unchanged" ? (
+          <div>
+            <h2 className="text-xs font-medium text-muted">Original</h2>
+            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-[13px] leading-6">{original}</pre>
+            <p className="mt-3 text-sm text-muted">Nothing was pasted.</p>
+          </div>
+        ) : null}
+
+        {status === "rewritten" ? (
+          <div className="grid gap-4 @min-[36rem]:grid-cols-2">
+            <div className="min-w-0">
+              <h2 className="text-xs font-medium text-muted">Original</h2>
+              <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-[13px] leading-6 text-muted">
+                {original}
+              </pre>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-medium">Optimized</h2>
+                {onCopy ? (
+                  <button
+                    type="button"
+                    className="cursor-pointer text-xs font-medium text-accent underline decoration-transparent underline-offset-4 transition-colors duration-150 hover:decoration-current"
+                    onClick={() => onCopy(rewritten)}
+                  >
+                    Copy
+                  </button>
+                ) : null}
+              </div>
+              {onChangeRewritten ? (
+                <textarea
+                  aria-label="Optimized prompt"
+                  value={rewritten}
+                  onChange={(event) => onChangeRewritten(event.target.value)}
+                  className="ps-editor mt-2 min-h-40 resize-y"
+                />
+              ) : (
+                <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-[13px] leading-6">{rewritten}</pre>
+              )}
+              <p className="mt-2 font-mono text-[11px] text-muted">~{approximateTokens(rewritten)} tok</p>
+            </div>
+          </div>
+        ) : null}
+
+        {warnings.length > 0 ? (
+          <ul className="mt-4 space-y-1 border-t border-accent/30 pt-3 text-xs leading-5">
+            {warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </section>
   );
 }
