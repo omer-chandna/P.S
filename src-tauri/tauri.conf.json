@@ -51,6 +51,6 @@
       }
     },
     "shortDescription": "Local prompt optimizer",
-    "longDescription": "P.S. improves prompts locally with Ollama before you send them to an AI coding agent."
+    "longDescription": "P.S. optimizes prompts locally with Ollama before you send them to an AI coding agent."
   }
 }

@@ -3,7 +3,6 @@ import { AppIcon } from "@/components/brand/Mark";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ResultView } from "@/components/optimizer/ResultView";
-import { Segmented } from "@/components/ui/segmented";
 import {
   activateModel,
   asFailure,
@@ -22,15 +21,9 @@ import type {
   AppSettings,
   HardwareResponse,
   ListedModel,
-  OptimizationMode,
   OptimizeOutcome,
   PullProgress,
 } from "@/types";
-
-const MODES: Array<{ value: OptimizationMode; label: string }> = [
-  { value: "improve", label: "Improve" },
-  { value: "compact", label: "Compact" },
-];
 
 export function Models({
   settings,
@@ -46,7 +39,6 @@ export function Models({
   const [pull, setPull] = useState<PullProgress | null>(null);
   const [testModel, setTestModel] = useState(settings.activeModel ?? "");
   const [sample, setSample] = useState(SAMPLE_VAGUE);
-  const [mode, setMode] = useState<OptimizationMode>("improve");
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<OptimizeOutcome | null>(null);
 
@@ -267,14 +259,13 @@ export function Models({
               <option value={testModel}>{testModel}</option>
             ) : null}
           </select>
-          <Segmented label="Trial mode" value={mode} options={MODES} onChange={setMode} />
           <Button
             size="sm"
             disabled={busy || !testModel || !sample.trim()}
             onClick={() => {
               setBusy(true);
               setError(null);
-              void optimizeText(sample, mode, testModel)
+              void optimizeText(sample, testModel)
                 .then(setOutcome)
                 .catch((caught: unknown) => setError(asFailure(caught).message))
                 .finally(() => setBusy(false));

@@ -2,9 +2,9 @@
 
 P.S. is a local prompt optimizer for people who write prompts to coding agents.
 
-It lives in the macOS menu bar or the Windows system tray. Select a prompt, press a shortcut, and a model running in [Ollama](https://ollama.com/download) rewrites it only when a clearer version would help the next agent. An already effective prompt stays exactly as you wrote it. If a decision only you can make is missing, P.S. asks one question. You still send the prompt yourself.
+It lives in the macOS menu bar or the Windows system tray. Select a prompt and press the shortcut. A model running in [Ollama](https://ollama.com/download) decides whether to clarify the wording, condense repetition, or leave the prompt exactly as you wrote it. You still send the prompt yourself.
 
-The rule is a **minimum sufficient prompt**: keep what changes the work, add only what helps it get done, and remove the rest. A better prompt is not a longer one. P.S. does not promise that the next agent will use fewer tokens.
+The rule is a **minimum sufficient prompt**: keep what changes the work, clarify only with information already in the text, remove filler, and do not add instructions a coding agent already knows. A better prompt is not a longer one. P.S. does not promise that the next agent will use fewer tokens.
 
 ![P.S. main window, with the manual optimizer and an empty result](docs/images/home.png)
 
@@ -30,20 +30,17 @@ The rule is a **minimum sufficient prompt**: keep what changes the work, add onl
 
 | | macOS | Windows |
 | --- | --- | --- |
-| Improve | Control+Option+P | Ctrl+Alt+P |
-| Compact | Control+Option+Shift+P | Ctrl+Alt+Shift+P |
+| Optimize | Control+Option+P | Ctrl+Alt+P |
 
-Improve makes the request easier to carry out. Compact removes filler and keeps every requirement. Either shortcut can be changed or turned off in Settings.
+One shortcut is enough. P.S. chooses the smallest useful change: clearer wording, less repetition, or no change. The shortcut can be changed or turned off in Settings.
 
 Closing the window hides P.S. Quit from the menu bar or the tray.
 
-### Three results
+### Two results
 
 **Rewritten.** A checked improvement replaces the selection when the same window still has the same text. If focus moved, the selection changed, or the rewrite dropped something that mattered, P.S. opens a review instead of pasting.
 
-**Unchanged.** The original text stays put. A small “Already clear” note is the whole result.
-
-**Needs a decision.** P.S. shows one question in its own window. The question is not typed into your editor.
+**Unchanged.** The original text stays put. A small “Already clear” note is the whole result. A reply that only asks the user a question is treated the same way: the selection is left alone.
 
 A vague bug report can become an instruction to investigate, fix, and check the result. A sentence that is already specific should survive untouched:
 
@@ -73,7 +70,7 @@ cd P.S
 npm install
 ```
 
-Have [Ollama](https://ollama.com/download) running on this computer before the first launch. The first window checks that connection, asks you to pick a model, then shows the shortcuts.
+Have [Ollama](https://ollama.com/download) running on this computer before the first launch. The first window checks that connection, asks you to pick a model, then shows the shortcut.
 
 ### macOS
 
@@ -97,7 +94,7 @@ macOS grants Accessibility to one signed copy. After you install a new build, tu
 
 This build is unsigned. If macOS blocks the first open, use System Settings, Privacy & Security, and choose Open Anyway.
 
-Improve is Control+Option+P. Compact is Control+Option+Shift+P. Highlight text in another app, press the shortcut, and wait for the local model. Closing the window hides P.S. Quit from the menu bar.
+The shortcut is Control+Option+P. Highlight text in another app, press it, and wait for the local model. Closing the window hides P.S. Quit from the menu bar.
 
 ### Windows
 
@@ -115,7 +112,7 @@ The installer adds **PS** to the Start menu for the current user. Open **PS** fr
 
 This build is unsigned. If SmartScreen says Windows protected your PC, choose More info, then Run anyway. Windows does not ask for a separate Accessibility permission.
 
-Improve is Ctrl+Alt+P. Compact is Ctrl+Alt+Shift+P. Closing the window hides P.S. Quit from the tray.
+The shortcut is Ctrl+Alt+P. Closing the window hides P.S. Quit from the tray.
 
 ## Development
 
@@ -156,7 +153,7 @@ Inference stays on your machine. There is no account and no subscription. Select
 | [`crates/ps-core`](crates/ps-core) | Endpoint checks, the Ollama client, optimization, preservation, shortcuts, and settings. The window, global hotkeys, and clipboard I/O stay outside this crate, so a later CLI can share the rules. |
 | [`src-tauri/`](src-tauri) | Menu bar, tray, global shortcuts, capture, and paste. |
 | [`src/`](src) | The window: home, models, settings, onboarding. |
-| [`prompts/`](prompts/README.md) | System instructions, version 1.2.0. The selected prompt is a separate user message. |
+| [`prompts/`](prompts/README.md) | System instructions, version 1.3.0. The selected prompt is a separate user message. |
 | [`fixtures/prompts.json`](fixtures/prompts.json) | Representative cases. Tests replay mocked model output against them. |
 | [`docs/PROMPT_ENGINE.md`](docs/PROMPT_ENGINE.md) | What counts as a better prompt, and what the model is told. |
 | [`docs/RELEASING.md`](docs/RELEASING.md) | Installers, signing, and notarization. |
@@ -172,7 +169,7 @@ Write access to this repository stays with the maintainer. Other people cannot p
 A pull request that gets merged keeps these boundaries:
 
 - The Ollama address stays on loopback.
-- Each optimization is one chat request. The model classifies and rewrites in that same call.
+- Each optimization is one chat request. The model decides whether to clarify, condense, or leave the prompt in that same call.
 - Prompt text stays out of logs and off disk.
 - The shipped app is Apple Silicon macOS and Windows 11. Linux builds and tests the core.
 - The packaged binary name is `postscript`, so it stays clear of the Unix `ps` process tool.

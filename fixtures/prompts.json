@@ -32,6 +32,13 @@
       "input": "Implement user deletion, but I haven't decided whether it should be permanent or reversible.",
       "illustrativeStatus": "rewritten",
       "illustrativeRewrite": "Implement user deletion. The user has not chosen permanent or reversible deletion, so leave that choice open and do not pick one."
+    },
+    {
+      "id": "verbose-repetition",
+      "category": "implement_feature",
+      "input": "Please update the login form. I really want you to update the login form so the login form shows an error when the password is empty. Thanks, and please again update the login form to show an error when the password is empty.",
+      "illustrativeStatus": "rewritten",
+      "illustrativeRewrite": "Update the login form so it shows an error when the password is empty."
     }
   ]
 }

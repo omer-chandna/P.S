@@ -3,7 +3,6 @@ use crate::state::{AppState, Attention, OptimizeOutcome};
 use crate::tones::{self, Tone};
 use crate::tray;
 use ps_core::clipboard::selection_matches;
-use ps_core::mode::OptimizationMode;
 use ps_core::models::validate_model_name;
 use ps_core::ollama::OllamaClient;
 use ps_core::optimizer::{optimize_prompt, OptimizationAnalysis, OptimizeConfig};
@@ -15,9 +14,9 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_notification::NotificationExt;
 use uuid::Uuid;
 
-pub fn spawn(app: AppHandle, mode: OptimizationMode) {
+pub fn spawn(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
-        if let Err(error) = run_global(&app, mode).await {
+        if let Err(error) = run_global(&app).await {
             tones::play(Tone::End);
             notify(&app, &error.to_string());
             let _ = app.emit("ps://notice", error.to_string());
@@ -29,7 +28,6 @@ pub fn spawn(app: AppHandle, mode: OptimizationMode) {
 pub async fn optimize_manual(
     app: &AppHandle,
     text: String,
-    mode: OptimizationMode,
     model_override: Option<String>,
 ) -> PsResult<OptimizeOutcome> {
     let state = app.state::<AppState>();
@@ -41,7 +39,6 @@ pub async fn optimize_manual(
         &client,
         &model,
         &text,
-        mode,
         &OptimizeConfig::from(&settings),
         &lease.cancellation(),
     )
@@ -121,11 +118,11 @@ fn paste_pending(pending: &PendingReplacement) -> PsResult<()> {
     platform::paste_text(host, &pending.rewritten_prompt)
 }
 
-async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
+async fn run_global(app: &AppHandle) -> PsResult<()> {
     let state = app.state::<AppState>();
     let settings = state.settings_snapshot();
     if settings.shortcuts_paused {
-        notify(app, "Shortcuts are paused.");
+        notify(app, "The shortcut is paused.");
         return Ok(());
     }
     let lease = match state.operations.try_begin() {
@@ -159,7 +156,6 @@ async fn run_global(app: &AppHandle, mode: OptimizationMode) -> PsResult<()> {
         &client,
         &model,
         &original,
-        mode,
         &OptimizeConfig::from(&settings),
         &lease.cancellation(),
     )
@@ -275,7 +271,6 @@ fn pending_from(
         original_text: original.to_string(),
         rewritten_prompt: analysis.rewritten_prompt.clone(),
         target: target.clone(),
-        mode: analysis.mode,
         model: analysis.model.clone(),
     }
 }
@@ -304,7 +299,6 @@ fn to_outcome(
 ) -> OptimizeOutcome {
     OptimizeOutcome {
         operation_id: id.to_string(),
-        mode: analysis.mode,
         model: analysis.model.clone(),
         prompt_version: analysis.prompt_version.clone(),
         status: analysis.status,

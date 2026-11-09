@@ -11,17 +11,13 @@ pub fn register(app: &AppHandle, settings: &AppSettings) -> PsResult<()> {
     shortcuts
         .unregister_all()
         .map_err(|_| PsError::ShortcutConflict {
-            shortcut: settings.improve_shortcut.accelerator.clone(),
+            shortcut: settings.shortcut.accelerator.clone(),
             detail: "Existing shortcuts could not be cleared.".into(),
         })?;
 
     let state = app.state::<AppState>();
     *state
-        .registered_improve
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = None;
-    *state
-        .registered_compact
+        .registered_shortcut
         .lock()
         .unwrap_or_else(|poison| poison.into_inner()) = None;
 
@@ -29,16 +25,11 @@ pub fn register(app: &AppHandle, settings: &AppSettings) -> PsResult<()> {
         return Ok(());
     }
 
-    let improve = register_one(app, &settings.improve_shortcut)?;
-    let compact = register_one(app, &settings.compact_shortcut)?;
+    let registered = register_one(app, &settings.shortcut)?;
     *state
-        .registered_improve
+        .registered_shortcut
         .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = improve;
-    *state
-        .registered_compact
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner()) = compact;
+        .unwrap_or_else(|poison| poison.into_inner()) = registered;
     Ok(())
 }
 
@@ -72,22 +63,11 @@ pub fn on_shortcut(app: &AppHandle, shortcut: &Shortcut, event: ShortcutEvent) {
     if settings.shortcuts_paused {
         return;
     }
-    let improve = *state
-        .registered_improve
+    let registered = *state
+        .registered_shortcut
         .lock()
         .unwrap_or_else(|poison| poison.into_inner());
-    let compact = *state
-        .registered_compact
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner());
-    let mode = if improve.as_ref() == Some(shortcut) {
-        Some(ps_core::OptimizationMode::Improve)
-    } else if compact.as_ref() == Some(shortcut) {
-        Some(ps_core::OptimizationMode::Compact)
-    } else {
-        None
-    };
-    if let Some(mode) = mode {
-        crate::global::spawn(app.clone(), mode);
+    if registered.as_ref() == Some(shortcut) {
+        crate::global::spawn(app.clone());
     }
 }

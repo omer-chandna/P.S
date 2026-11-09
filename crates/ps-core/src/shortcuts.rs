@@ -98,19 +98,6 @@ fn normalize_key(raw: &str) -> PsResult<String> {
     })
 }
 
-pub fn shortcuts_conflict(improve: &ShortcutBinding, compact: &ShortcutBinding) -> bool {
-    if !improve.enabled || !compact.enabled {
-        return false;
-    }
-    match (
-        normalize_accelerator(&improve.accelerator),
-        normalize_accelerator(&compact.accelerator),
-    ) {
-        (Ok(left), Ok(right)) => left == right,
-        _ => false,
-    }
-}
-
 pub fn display_accelerator(canonical: &str, macos: bool) -> String {
     if !macos {
         return canonical.to_string();
@@ -127,12 +114,8 @@ pub fn display_accelerator(canonical: &str, macos: bool) -> String {
         .join("+")
 }
 
-pub fn default_improve_accelerator() -> &'static str {
+pub fn default_accelerator() -> &'static str {
     "Ctrl+Alt+P"
-}
-
-pub fn default_compact_accelerator() -> &'static str {
-    "Ctrl+Alt+Shift+P"
 }
 
 #[cfg(test)]
@@ -160,15 +143,6 @@ mod tests {
         assert!(normalize_accelerator("P").is_err());
         assert!(normalize_accelerator("Ctrl+Nope").is_err());
         assert!(normalize_accelerator("Ctrl+Alt").is_err());
-    }
-
-    #[test]
-    fn detects_conflicts_only_when_both_enabled() {
-        let improve = ShortcutBinding::new(true, "Alt+Ctrl+P");
-        let compact = ShortcutBinding::new(true, "Ctrl+Alt+P");
-        assert!(shortcuts_conflict(&improve, &compact));
-        let disabled = ShortcutBinding::new(false, "Ctrl+Alt+P");
-        assert!(!shortcuts_conflict(&improve, &disabled));
     }
 
     #[test]

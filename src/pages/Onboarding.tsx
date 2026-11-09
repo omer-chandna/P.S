@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { AppIcon, MenuMark } from "@/components/brand/Mark";
 import { Button } from "@/components/ui/button";
 import { ResultView } from "@/components/optimizer/ResultView";
-import { Segmented } from "@/components/ui/segmented";
 import { Switch } from "@/components/ui/switch";
 import {
   asFailure,
@@ -25,7 +24,6 @@ import type {
   AppSettings,
   ConnectionStatus,
   ListedModel,
-  OptimizationMode,
   OptimizeOutcome,
   PermissionInfo,
   PresetRecommendation,
@@ -33,12 +31,7 @@ import type {
   ShortcutInfo,
 } from "@/types";
 
-const STEPS = ["Start", "Connect", "Model", "Shortcuts", "Try", "Ready"] as const;
-
-const MODES: Array<{ value: OptimizationMode; label: string }> = [
-  { value: "improve", label: "Improve" },
-  { value: "compact", label: "Compact" },
-];
+const STEPS = ["Start", "Connect", "Model", "Shortcut", "Try", "Ready"] as const;
 
 export function Onboarding({
   settings,
@@ -57,7 +50,6 @@ export function Onboarding({
   const [shortcuts, setShortcuts] = useState<ShortcutInfo | null>(null);
   const [pull, setPull] = useState<PullProgress | null>(null);
   const [sample, setSample] = useState(SAMPLE_VAGUE);
-  const [mode, setMode] = useState<OptimizationMode>("improve");
   const [outcome, setOutcome] = useState<OptimizeOutcome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -220,16 +212,13 @@ export function Onboarding({
 
           {step === 3 ? (
             <div className="max-w-lg space-y-4">
-              <h1 className="text-3xl font-semibold tracking-tight">Shortcuts</h1>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="ps-raised rounded-xl p-4">
-                  <p className="text-sm text-muted">Improve</p>
-                  <p className="mt-2 font-mono text-lg">{shortcuts?.improveDisplay ?? "Ctrl+Alt+P"}</p>
-                </div>
-                <div className="ps-raised rounded-xl p-4">
-                  <p className="text-sm text-muted">Compact</p>
-                  <p className="mt-2 font-mono text-lg">{shortcuts?.compactDisplay ?? "Ctrl+Alt+Shift+P"}</p>
-                </div>
+              <h1 className="text-3xl font-semibold tracking-tight">Shortcut</h1>
+              <div className="ps-raised max-w-sm rounded-xl p-4">
+                <p className="text-sm text-muted">Optimize</p>
+                <p className="mt-2 font-mono text-lg">{shortcuts?.display ?? "Ctrl+Alt+P"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">
+                  Highlight a prompt and press it. P.S. clarifies the wording, condenses repetition, or leaves the text alone.
+                </p>
               </div>
               <div>
                 <p className="text-sm font-medium">{permission?.title}</p>
@@ -259,7 +248,6 @@ export function Onboarding({
                 <Button size="sm" variant="secondary" onClick={() => setSample(SAMPLE_CLEAR)}>
                   Already clear
                 </Button>
-                <Segmented label="Trial mode" value={mode} options={MODES} onChange={setMode} />
               </div>
               <textarea
                 aria-label="Onboarding sample"
@@ -277,7 +265,7 @@ export function Onboarding({
                   }
                   setBusy(true);
                   setError(null);
-                  void optimizeText(sample, mode, settings.activeModel)
+                  void optimizeText(sample, settings.activeModel)
                     .then(setOutcome)
                     .catch((caught: unknown) => setError(asFailure(caught).message))
                     .finally(() => setBusy(false));
@@ -310,8 +298,8 @@ export function Onboarding({
                   <dd className="mt-1 font-mono text-sm">{settings.activeModel ?? "Not selected"}</dd>
                 </div>
                 <div className="ps-raised rounded-xl p-4">
-                  <dt className="text-sm text-muted">Improve</dt>
-                  <dd className="mt-1 font-mono text-sm">{shortcuts?.improveDisplay ?? "Ctrl+Alt+P"}</dd>
+                  <dt className="text-sm text-muted">Shortcut</dt>
+                  <dd className="mt-1 font-mono text-sm">{shortcuts?.display ?? "Ctrl+Alt+P"}</dd>
                 </div>
               </dl>
               <p className="text-sm leading-6 text-muted">Closing the window keeps P.S. running.</p>
