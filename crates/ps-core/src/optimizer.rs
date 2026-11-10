@@ -212,19 +212,10 @@ fn settle_rewritten(rewritten: &str, original: &str) -> PsResult<ParsedOptimizat
     Ok(accept_or_leave(rewritten, original))
 }
 
-fn settle_unchanged(rewritten: &str, original: &str) -> PsResult<ParsedOptimization> {
-    let rewritten = rewritten.trim();
-    if rewritten.is_empty()
-        || selection_matches(rewritten, original)
-        || is_cosmetic_edit(rewritten, original)
-        || is_user_facing_question(rewritten)
-        || is_placeholder_prompt(rewritten)
-    {
-        return Ok(unchanged(original));
-    }
-    Err(PsError::MalformedOutput {
-        detail: "The model marked the prompt unchanged but returned different text.".into(),
-    })
+/// `unchanged` is a decision to keep the selection. Small models often rewrite the
+/// text anyway. That reply is not an error, and the rewritten text is not used.
+fn settle_unchanged(_rewritten: &str, original: &str) -> PsResult<ParsedOptimization> {
+    Ok(unchanged(original))
 }
 
 /// A model that still asks a question does not stop the shortcut.
@@ -563,11 +554,6 @@ mod tests {
             parse_model_output(r#"{"status":"rewritten","rewritten_prompt":""}"#, original)
                 .is_err()
         );
-        assert!(parse_model_output(
-            r#"{"status":"unchanged","rewritten_prompt":"different"}"#,
-            original
-        )
-        .is_err());
         let question_only = parse_model_output(
             r#"{"status":"needs_clarification","rewritten_prompt":"do this","clarification_question":"Which?"}"#,
             original,
@@ -596,6 +582,18 @@ mod tests {
             parse_model_output(r#"{"status":"ship_it","rewritten_prompt":"x"}"#, original).is_err()
         );
         assert!(parse_model_output("```json\n{\"status\":\"unchanged\"}\n```", original).is_err());
+    }
+
+    #[test]
+    fn unchanged_status_keeps_the_original_when_the_model_returns_different_text() {
+        let original = "is the readme good eonugh for an open source project?";
+        let parsed = parse_model_output(
+            r#"{"status":"unchanged","rewritten_prompt":"Is the README good enough for an open source project?"}"#,
+            original,
+        )
+        .unwrap();
+        assert_eq!(parsed.status, OptimizationStatus::Unchanged);
+        assert_eq!(parsed.rewritten_prompt, original);
     }
 
     #[test]
