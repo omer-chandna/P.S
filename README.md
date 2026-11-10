@@ -53,42 +53,28 @@ That is the behaviour P.S. is built for. It is not a promise that every model wi
 | | |
 | --- | --- |
 | Desktop app | macOS 14 Sonoma or newer on Apple Silicon, or Windows 11 x64 |
-| Tools | [Git](https://git-scm.com), [Node.js](https://nodejs.org) 22, and [Rust](https://rustup.rs) 1.90. With rustup, `rust-toolchain.toml` selects the compiler. |
-| macOS | Xcode command line tools (`xcode-select --install`) |
-| Windows | Visual Studio C++ build tools and the WebView2 runtime |
 | Models | [Ollama](https://ollama.com/download) on the same computer |
 
 Intel Macs and Windows 10 are outside the desktop target. Linux can build and test the core.
 
+Building from source needs [Git](https://git-scm.com), [Node.js](https://nodejs.org) 22 or newer, and [Rust](https://rustup.rs) 1.90. With rustup, `rust-toolchain.toml` selects the compiler. macOS also needs the Xcode command line tools (`xcode-select --install`). Windows also needs the Visual Studio C++ build tools and the WebView2 runtime.
+
 ## Install
 
-Clone the repository and install the dependencies, then build the installer for your system.
-
-```bash
-git clone https://github.com/omer-chandna/P.S.git
-cd P.S
-npm install
-```
+Download [version 0.1.0](https://github.com/omer-chandna/P.S/releases/tag/v0.1.0).
 
 Have [Ollama](https://ollama.com/download) running on this computer before the first launch. The first window checks that connection, asks you to pick a model, then shows the shortcut.
 
 ### macOS
 
-```bash
-npm run installer:mac
-```
+[PS_0.1.0_aarch64.dmg](https://github.com/omer-chandna/P.S/releases/download/v0.1.0/PS_0.1.0_aarch64.dmg)
 
-Open this disk image. The command opens it when the build finishes.
-
-```text
-target/aarch64-apple-darwin/release/bundle/dmg/PS_0.1.0_aarch64.dmg
-```
-
-1. Drag **PS** from the disk image to **Applications**.
-2. Eject the disk image, then open **PS** from Applications.
-3. On the Shortcuts step, choose **Enable Accessibility**.
-4. In System Settings, go to Privacy & Security, then Accessibility, and turn **PS** on. The installed app is listed as **PS**.
-5. Quit P.S. and open it again from Applications.
+1. Open the disk image.
+2. Drag **PS** from the disk image to **Applications**.
+3. Eject the disk image, then open **PS** from Applications.
+4. On the Shortcuts step, choose **Enable Accessibility**.
+5. In System Settings, go to Privacy & Security, then Accessibility, and turn **PS** on. The installed app is listed as **PS**.
+6. Quit P.S. and open it again from Applications.
 
 macOS grants Accessibility to one signed copy. After you install a new build, turn **PS** on again for that copy, then quit and reopen P.S.
 
@@ -98,17 +84,9 @@ The shortcut is Control+Option+P. Highlight text in another app, press it, and w
 
 ### Windows
 
-```bash
-npm run installer:win
-```
+[PS_0.1.0_x64-setup.exe](https://github.com/omer-chandna/P.S/releases/download/v0.1.0/PS_0.1.0_x64-setup.exe)
 
-Run this installer:
-
-```text
-target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe
-```
-
-The installer adds **PS** to the Start menu for the current user. Open **PS** from the Start menu.
+Run that installer. It adds **PS** to the Start menu for the current user. Open **PS** from the Start menu.
 
 This build is unsigned. If SmartScreen says Windows protected your PC, choose More info, then Run anyway. Windows does not ask for a separate Accessibility permission.
 
@@ -117,10 +95,27 @@ The shortcut is Ctrl+Alt+P. Closing the window hides P.S. Quit from the tray.
 ## Development
 
 ```bash
+git clone https://github.com/omer-chandna/P.S.git
+cd P.S
+npm install
 npm run tauri dev
 ```
 
 This runs the unpackaged binary. On macOS, Accessibility lists that process as **postscript**. On Windows the binary is `postscript.exe`. The installed app is listed as **PS**.
+
+To build the installers yourself:
+
+```bash
+npm run installer:mac
+```
+
+The disk image is `target/aarch64-apple-darwin/release/bundle/dmg/PS_0.1.0_aarch64.dmg`.
+
+```bash
+npm run installer:win
+```
+
+The installer is `target/x86_64-pc-windows-msvc/release/bundle/nsis/PS_0.1.0_x64-setup.exe`.
 
 ## Set up
 
