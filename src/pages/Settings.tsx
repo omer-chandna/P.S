@@ -11,11 +11,6 @@ const THEMES: Array<{ value: ThemeName; label: string }> = [
   { value: "system", label: "System" },
 ];
 
-const MODES: Array<{ value: AppSettings["defaultMode"]; label: string }> = [
-  { value: "improve", label: "Improve" },
-  { value: "compact", label: "Compact" },
-];
-
 export function Settings({
   settings,
   shortcuts,
@@ -85,41 +80,23 @@ export function Settings({
           </div>
         </Section>
 
-        <Section title="Shortcuts">
+        <Section title="Shortcut">
           <ShortcutField
-            label="Improve"
-            display={shortcuts?.improveDisplay}
-            enabled={draft.improveShortcut.enabled}
-            accelerator={draft.improveShortcut.accelerator}
-            onEnabled={(enabled) => update("improveShortcut", { ...draft.improveShortcut, enabled })}
-            onAccelerator={(accelerator) => update("improveShortcut", { ...draft.improveShortcut, accelerator })}
-          />
-          <ShortcutField
-            label="Compact"
-            display={shortcuts?.compactDisplay}
-            enabled={draft.compactShortcut.enabled}
-            accelerator={draft.compactShortcut.accelerator}
-            onEnabled={(enabled) => update("compactShortcut", { ...draft.compactShortcut, enabled })}
-            onAccelerator={(accelerator) => update("compactShortcut", { ...draft.compactShortcut, accelerator })}
+            label="Optimize"
+            display={shortcuts?.display}
+            enabled={draft.shortcut.enabled}
+            accelerator={draft.shortcut.accelerator}
+            onEnabled={(enabled) => update("shortcut", { ...draft.shortcut, enabled })}
+            onAccelerator={(accelerator) => update("shortcut", { ...draft.shortcut, accelerator })}
           />
           <Toggle
-            label="Pause shortcuts"
+            label="Pause shortcut"
             checked={draft.shortcutsPaused}
             onChange={(checked) => update("shortcutsPaused", checked)}
           />
-          {shortcuts?.conflict ? <p className="py-3 text-sm text-danger">{shortcuts.conflict}</p> : null}
         </Section>
 
         <Section title="Optimization">
-          <div className="flex items-center justify-between gap-4 py-3 text-sm">
-            <span>Default mode</span>
-            <Segmented
-              label="Default mode"
-              value={draft.defaultMode}
-              options={MODES}
-              onChange={(mode) => update("defaultMode", mode)}
-            />
-          </div>
           <Toggle
             label="Replace the selection automatically"
             checked={draft.autoReplace}

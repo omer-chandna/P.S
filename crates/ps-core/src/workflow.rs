@@ -1,4 +1,3 @@
-use crate::mode::OptimizationMode;
 use crate::optimizer::OptimizationStatus;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -68,7 +67,6 @@ pub struct PendingReplacement {
     pub original_text: String,
     pub rewritten_prompt: String,
     pub target: WindowTarget,
-    pub mode: OptimizationMode,
     pub model: String,
 }
 

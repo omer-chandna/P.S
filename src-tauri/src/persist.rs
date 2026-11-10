@@ -1,3 +1,4 @@
+use ps_core::settings::{settings_from_stored, stored_settings_need_migration};
 use ps_core::{AppSettings, PsError, PsResult};
 use tauri::AppHandle;
 use tauri_plugin_store::StoreExt;
@@ -12,11 +13,12 @@ pub fn load_settings(app: &AppHandle) -> AppSettings {
     let Some(value) = store.get(SETTINGS_KEY) else {
         return AppSettings::default();
     };
-    let Ok(mut settings) = serde_json::from_value::<AppSettings>(value) else {
+    let migrate = stored_settings_need_migration(&value);
+    let Ok(settings) = settings_from_stored(value) else {
         return AppSettings::default();
     };
-    if settings.validate_and_normalize().is_err() {
-        return AppSettings::default();
+    if migrate {
+        let _ = save_settings(app, &settings);
     }
     settings
 }

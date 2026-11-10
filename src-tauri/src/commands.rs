@@ -3,11 +3,10 @@ use crate::platform::{self, host, PermissionState};
 use crate::state::{AppState, Attention, OptimizeOutcome, PullJob};
 use crate::tray;
 use ps_core::hardware::HardwareProfile;
-use ps_core::mode::OptimizationMode;
 use ps_core::models::{validate_model_name, ListedModel, RecommendationSet};
 use ps_core::ollama::OllamaClient;
 use ps_core::settings::AppSettings;
-use ps_core::shortcuts::{display_accelerator, shortcuts_conflict};
+use ps_core::shortcuts::display_accelerator;
 use ps_core::{PsError, PsResult};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
@@ -19,7 +18,6 @@ use serde::Deserialize;
 #[serde(rename_all = "camelCase")]
 pub struct OptimizeRequest {
     pub text: String,
-    pub mode: OptimizationMode,
     pub model: Option<String>,
 }
 
@@ -43,14 +41,10 @@ pub struct HardwareResponse {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ShortcutInfo {
-    pub improve_accelerator: String,
-    pub improve_display: String,
-    pub improve_enabled: bool,
-    pub compact_accelerator: String,
-    pub compact_display: String,
-    pub compact_enabled: bool,
+    pub accelerator: String,
+    pub display: String,
+    pub enabled: bool,
     pub paused: bool,
-    pub conflict: Option<String>,
     pub macos: bool,
 }
 
@@ -243,7 +237,7 @@ pub fn hardware_recommendations() -> HardwareResponse {
 
 #[tauri::command]
 pub async fn optimize_text(app: AppHandle, request: OptimizeRequest) -> PsResult<OptimizeOutcome> {
-    global::optimize_manual(&app, request.text, request.mode, request.model).await
+    global::optimize_manual(&app, request.text, request.model).await
 }
 
 #[tauri::command]
@@ -270,20 +264,11 @@ pub async fn accept_attention(app: AppHandle, id: Uuid) -> PsResult<()> {
 pub fn shortcut_info(app: AppHandle) -> ShortcutInfo {
     let settings = app.state::<AppState>().settings_snapshot();
     let macos = cfg!(target_os = "macos");
-    let conflict = if shortcuts_conflict(&settings.improve_shortcut, &settings.compact_shortcut) {
-        Some("Improve and Compact are using the same shortcut.".to_string())
-    } else {
-        None
-    };
     ShortcutInfo {
-        improve_accelerator: settings.improve_shortcut.accelerator.clone(),
-        improve_display: display_accelerator(&settings.improve_shortcut.accelerator, macos),
-        improve_enabled: settings.improve_shortcut.enabled,
-        compact_accelerator: settings.compact_shortcut.accelerator.clone(),
-        compact_display: display_accelerator(&settings.compact_shortcut.accelerator, macos),
-        compact_enabled: settings.compact_shortcut.enabled,
+        accelerator: settings.shortcut.accelerator.clone(),
+        display: display_accelerator(&settings.shortcut.accelerator, macos),
+        enabled: settings.shortcut.enabled,
         paused: settings.shortcuts_paused,
-        conflict,
         macos,
     }
 }
@@ -296,7 +281,7 @@ pub fn permission_info() -> PermissionInfo {
                 PermissionInfo {
                     state: "granted",
                     title: "Shortcuts are ready".into(),
-                    detail: "Windows does not ask for a separate permission. Ctrl+Alt+P improves the selection. Ctrl+Alt+Shift+P compacts it.".into(),
+                    detail: "Windows does not ask for a separate permission. Ctrl+Alt+P optimizes the selection.".into(),
                 }
             } else {
                 PermissionInfo {

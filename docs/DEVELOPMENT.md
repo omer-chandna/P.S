@@ -30,7 +30,7 @@ P.S. is a Tauri desktop app with a shared Rust core. Supported products are Appl
 
 ### Phase 3 — Prompt optimization
 
-- [x] Shared, Improve, and Compact prompts (v1.2.0)
+- [x] One optimization prompt that clarifies, condenses, or leaves the text (v1.3.0)
 - [x] Separate system and user messages
 - [x] JSON schema output
 - [x] `rewritten` and `unchanged`
@@ -52,7 +52,7 @@ P.S. is a Tauri desktop app with a shared Rust core. Supported products are Appl
 
 ### Phase 6 — Global shortcuts
 
-- [x] Accelerator parsing, conflict detection, registration, pause
+- [x] Accelerator parsing, one global shortcut, registration, pause
 - [x] Single-flight optimization and cancellation
 - [ ] Confirm registration against a real OS shortcut conflict
 
@@ -97,7 +97,8 @@ P.S. is a Tauri desktop app with a shared Rust core. Supported products are Appl
 | Product name `PS` | Avoids a period in installer paths. The interface still says P.S. |
 | Loopback endpoints only | Stops the app being pointed at a remote inference service |
 | Heuristic preservation, then preview | A fluent rewrite that drops a path or version is not pasted |
-| No model benchmark | Quality is compared by hand in Test Model |
+| One shortcut, one prompt | The model chooses clarity, condensation, or no change. The user does not pick a mode |
+| No model benchmark | Quality is compared by hand in Try a model |
 
 ## Latest local test status
 

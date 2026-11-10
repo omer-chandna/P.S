@@ -1,4 +1,3 @@
-use ps_core::mode::OptimizationMode;
 use ps_core::ollama::OllamaClient;
 use ps_core::optimizer::{optimize_prompt, OptimizationStatus, OptimizeConfig};
 use ps_core::settings::AppSettings;
@@ -42,12 +41,21 @@ async fn chat_round_trip_uses_structured_output_and_preserves_constraints() {
         &client,
         "qwen3.5:4b",
         "Update src/auth/session.ts without changing the public API. Keep compatibility with Node 22.",
-        OptimizationMode::Improve,
         &config(),
         &CancellationToken::new(),
     )
     .await
     .unwrap();
+
+    let requests = server.received_requests().await.unwrap();
+    let body = String::from_utf8_lossy(&requests[0].body);
+    assert_eq!(requests.len(), 1);
+    assert!(body.contains("Clarify"));
+    assert!(body.contains("Condense"));
+    assert!(body.contains("MINIMUM SUFFICIENT PROMPT"));
+    assert!(!body.contains("MODE: IMPROVE"));
+    assert!(!body.contains("MODE: COMPACT"));
+    assert!(!body.contains("needs_clarification"));
 
     assert_eq!(analysis.status, OptimizationStatus::Rewritten);
     assert!(
@@ -59,7 +67,7 @@ async fn chat_round_trip_uses_structured_output_and_preserves_constraints() {
     assert!(analysis.rewritten_prompt.contains("Node 22"));
     assert_eq!(analysis.prompt_tokens, Some(42));
     assert_eq!(analysis.completion_tokens, Some(30));
-    assert_eq!(analysis.prompt_version, "1.2.0");
+    assert_eq!(analysis.prompt_version, "1.3.0");
 }
 
 #[tokio::test]
@@ -88,7 +96,6 @@ async fn unchanged_fixture_keeps_the_exact_original() {
         &client,
         "qwen3.5:4b",
         original,
-        OptimizationMode::Compact,
         &config(),
         &CancellationToken::new(),
     )
@@ -121,7 +128,6 @@ async fn a_question_only_reply_leaves_the_original() {
         &client,
         "qwen3.5:4b",
         original,
-        OptimizationMode::Improve,
         &config(),
         &CancellationToken::new(),
     )
@@ -153,7 +159,6 @@ async fn a_legacy_question_with_a_rewrite_keeps_the_rewrite() {
         &client,
         "qwen3.5:4b",
         "fix login it breaks on refresh",
-        OptimizationMode::Improve,
         &config(),
         &CancellationToken::new(),
     )

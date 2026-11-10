@@ -8,7 +8,6 @@ import {
   type ConnectionStatus,
   type HardwareResponse,
   type ListedModel,
-  type OptimizationMode,
   type OptimizeOutcome,
   type PermissionInfo,
   type PsFailure,
@@ -17,6 +16,24 @@ import {
 } from "@/types";
 
 let browserSettings = defaultSettings();
+
+function displayAccelerator(accelerator: string, macos: boolean): string {
+  if (!macos) {
+    return accelerator;
+  }
+  return accelerator
+    .split("+")
+    .map((part) => {
+      if (part === "Ctrl") {
+        return "Control";
+      }
+      if (part === "Alt") {
+        return "Option";
+      }
+      return part;
+    })
+    .join("+");
+}
 
 export function inTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -166,18 +183,14 @@ export async function hardwareRecommendations(): Promise<HardwareResponse> {
   return invoke<HardwareResponse>("hardware_recommendations");
 }
 
-export async function optimizeText(
-  text: string,
-  mode: OptimizationMode,
-  model?: string,
-): Promise<OptimizeOutcome> {
+export async function optimizeText(text: string, model?: string): Promise<OptimizeOutcome> {
   if (!inTauri()) {
     throw {
       category: "unsupported_platform",
       message: "Optimization runs inside the desktop app against local Ollama.",
     } satisfies PsFailure;
   }
-  return invoke<OptimizeOutcome>("optimize_text", { request: { text, mode, model: model ?? null } });
+  return invoke<OptimizeOutcome>("optimize_text", { request: { text, model: model ?? null } });
 }
 
 export async function cancelOptimization(): Promise<boolean> {
@@ -209,16 +222,10 @@ export async function shortcutInfo(): Promise<ShortcutInfo> {
   if (!inTauri()) {
     const macos = navigator.platform.toLowerCase().includes("mac");
     return {
-      improveAccelerator: browserSettings.improveShortcut.accelerator,
-      improveDisplay: macos ? "Control+Option+P" : browserSettings.improveShortcut.accelerator,
-      improveEnabled: browserSettings.improveShortcut.enabled,
-      compactAccelerator: browserSettings.compactShortcut.accelerator,
-      compactDisplay: macos
-        ? "Control+Option+Shift+P"
-        : browserSettings.compactShortcut.accelerator,
-      compactEnabled: browserSettings.compactShortcut.enabled,
+      accelerator: browserSettings.shortcut.accelerator,
+      display: displayAccelerator(browserSettings.shortcut.accelerator, macos),
+      enabled: browserSettings.shortcut.enabled,
       paused: browserSettings.shortcutsPaused,
-      conflict: null,
       macos,
     };
   }
@@ -253,7 +260,7 @@ export async function appInfo(): Promise<AppInfo> {
     return {
       name: "P.S.",
       version: "0.1.0",
-      promptVersion: "1.2.0",
+      promptVersion: "1.3.0",
       os: "browser",
       arch: "preview",
       supportedPlatform: false,

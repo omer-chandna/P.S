@@ -1,4 +1,3 @@
-export type OptimizationMode = "improve" | "compact";
 export type OptimizationStatus = "rewritten" | "unchanged";
 export type DeliveryPlan = "replace" | "leave_unchanged" | "preview" | "abort";
 export type ThemeName = "dark" | "light" | "system";
@@ -17,9 +16,7 @@ export interface AppSettings {
   runInBackground: boolean;
   notifications: boolean;
   shortcutsPaused: boolean;
-  improveShortcut: ShortcutBinding;
-  compactShortcut: ShortcutBinding;
-  defaultMode: OptimizationMode;
+  shortcut: ShortcutBinding;
   autoReplace: boolean;
   previewBeforeReplace: boolean;
   promptVersion: string;
@@ -37,7 +34,6 @@ export interface AppSettings {
 
 export interface OptimizeOutcome {
   operationId: string;
-  mode: OptimizationMode;
   model: string;
   promptVersion: string;
   status: OptimizationStatus;
@@ -113,14 +109,10 @@ export interface HardwareResponse {
 }
 
 export interface ShortcutInfo {
-  improveAccelerator: string;
-  improveDisplay: string;
-  improveEnabled: boolean;
-  compactAccelerator: string;
-  compactDisplay: string;
-  compactEnabled: boolean;
+  accelerator: string;
+  display: string;
+  enabled: boolean;
   paused: boolean;
-  conflict: string | null;
   macos: boolean;
 }
 
@@ -154,18 +146,16 @@ export interface PsFailure {
 
 export function defaultSettings(): AppSettings {
   return {
-    version: 1,
+    version: 2,
     theme: "dark",
     launchAtStartup: false,
     runInBackground: true,
     notifications: true,
     shortcutsPaused: false,
-    improveShortcut: { enabled: true, accelerator: "Ctrl+Alt+P" },
-    compactShortcut: { enabled: true, accelerator: "Ctrl+Alt+Shift+P" },
-    defaultMode: "improve",
+    shortcut: { enabled: true, accelerator: "Ctrl+Alt+P" },
     autoReplace: true,
     previewBeforeReplace: false,
-    promptVersion: "1.2.0",
+    promptVersion: "1.3.0",
     ollamaEndpoint: "http://127.0.0.1:11434",
     activeModel: null,
     temperature: 0.2,

@@ -39,7 +39,7 @@ Run these on Apple Silicon macOS 14+ and on Windows 11 after installing Ollama. 
 | Cursor composer, VS Code, a browser field, and a native editor | Copy and paste succeed where the control supports them |
 | Multiline and long selections | The full selection is preserved |
 | Already clear prompt | No paste, “Already clear” notification |
-| Clarification result | The question is shown in P.S., not inserted into the editor |
+| Model returns only a question | Selection unchanged. The question is not inserted or shown |
 | Rewrite with preview off | The selection is replaced and undo restores it where the editor allows |
 | Switch apps during inference | No paste; review or cancellation |
 | Change the selection during inference | No paste |
@@ -50,4 +50,4 @@ Run these on Apple Silicon macOS 14+ and on Windows 11 after installing Ollama. 
 | Shortcut already taken by the OS | A conflict error, previous shortcut kept |
 | Quit during inference | No paste |
 
-Record the OS version, Ollama version, and model name next to any manual result. Model quality is judged in the Test Model page, one prompt at a time, without an automated score.
+Record the OS version, Ollama version, and model name next to any manual result. Model quality is judged in Try a model, one prompt at a time, without an automated score.

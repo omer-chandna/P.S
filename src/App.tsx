@@ -129,7 +129,7 @@ export function App() {
       {attention ? (
         <Review attention={attention} onClose={() => setAttention(null)} />
       ) : page === "home" ? (
-        <Home modelName={settings.activeModel} defaultMode={settings.defaultMode} shortcuts={shortcuts} />
+        <Home modelName={settings.activeModel} shortcuts={shortcuts} />
       ) : page === "models" ? (
         <Models
           settings={settings}

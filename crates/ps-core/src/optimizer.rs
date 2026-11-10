@@ -1,6 +1,5 @@
 use crate::clipboard::selection_matches;
 use crate::error::{PsError, PsResult};
-use crate::mode::OptimizationMode;
 use crate::ollama::{ChatMessage, ChatOptions, ChatRequest, ChatResponse, OllamaClient};
 use crate::preservation::{check_preservation, PreservationReport};
 use crate::prompts::{output_schema, prompt_version, system_prompt, user_message};
@@ -53,7 +52,6 @@ pub struct OptimizationAnalysis {
     pub completion_tokens: Option<u64>,
     pub prompt_version: String,
     pub model: String,
-    pub mode: OptimizationMode,
 }
 
 pub fn select_output_budget(input_chars: usize, configured: Option<u32>) -> u32 {
@@ -67,18 +65,13 @@ pub fn select_output_budget(input_chars: usize, configured: Option<u32>) -> u32 
     budget.clamp(512, 16_384)
 }
 
-pub fn build_chat_request(
-    model: &str,
-    original: &str,
-    mode: OptimizationMode,
-    config: &OptimizeConfig,
-) -> ChatRequest {
+pub fn build_chat_request(model: &str, original: &str, config: &OptimizeConfig) -> ChatRequest {
     ChatRequest {
         model: model.to_string(),
         messages: vec![
             ChatMessage {
                 role: "system".into(),
-                content: system_prompt(mode),
+                content: system_prompt(),
             },
             ChatMessage {
                 role: "user".into(),
@@ -101,7 +94,6 @@ pub async fn optimize_prompt(
     client: &OllamaClient,
     model: &str,
     original: &str,
-    mode: OptimizationMode,
     config: &OptimizeConfig,
     cancel: &CancellationToken,
 ) -> PsResult<OptimizationAnalysis> {
@@ -112,14 +104,13 @@ pub async fn optimize_prompt(
         return Err(PsError::PromptTooLong);
     }
     let started = Instant::now();
-    let request = build_chat_request(model, original, mode, config);
+    let request = build_chat_request(model, original, config);
     let response = client.chat(&request, config.timeout, cancel).await?;
-    interpret_chat_response(original, mode, model, response, started.elapsed())
+    interpret_chat_response(original, model, response, started.elapsed())
 }
 
 pub fn interpret_chat_response(
     original: &str,
-    mode: OptimizationMode,
     model: &str,
     response: ChatResponse,
     elapsed: Duration,
@@ -163,7 +154,6 @@ pub fn interpret_chat_response(
         completion_tokens: response.eval_count,
         prompt_version: prompt_version().to_string(),
         model: model.to_string(),
-        mode,
     })
 }
 
@@ -226,6 +216,7 @@ fn settle_unchanged(rewritten: &str, original: &str) -> PsResult<ParsedOptimizat
     let rewritten = rewritten.trim();
     if rewritten.is_empty()
         || selection_matches(rewritten, original)
+        || is_cosmetic_edit(rewritten, original)
         || is_user_facing_question(rewritten)
         || is_placeholder_prompt(rewritten)
     {
@@ -249,6 +240,7 @@ fn settle_legacy_question(rewritten: &str, original: &str) -> ParsedOptimization
 
 fn accept_or_leave(rewritten: &str, original: &str) -> ParsedOptimization {
     if selection_matches(rewritten, original)
+        || is_cosmetic_edit(rewritten, original)
         || is_user_facing_question(rewritten)
         || is_placeholder_prompt(rewritten)
     {
@@ -256,6 +248,20 @@ fn accept_or_leave(rewritten: &str, original: &str) -> ParsedOptimization {
     } else {
         rewritten_result(rewritten)
     }
+}
+
+/// Case, spacing, wrapping quotes, and a trailing sentence mark are not a rewrite.
+/// Internal punctuation stays significant so versions, paths, and flags are kept.
+fn is_cosmetic_edit(rewritten: &str, original: &str) -> bool {
+    let left = cosmetic_key(original);
+    let right = cosmetic_key(rewritten);
+    !left.is_empty() && left == right
+}
+
+fn cosmetic_key(text: &str) -> String {
+    let collapsed = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    let trimmed = collapsed.trim().trim_matches(['"', '\'', '`']);
+    trimmed.trim_end_matches(['.', '!', '?']).to_lowercase()
 }
 
 fn rewritten_result(prompt: &str) -> ParsedOptimization {
@@ -268,6 +274,7 @@ fn rewritten_result(prompt: &str) -> ParsedOptimization {
 fn usable_prompt<'a>(rewritten: &'a str, original: &str) -> Option<&'a str> {
     if rewritten.chars().count() < 24
         || selection_matches(rewritten, original)
+        || is_cosmetic_edit(rewritten, original)
         || is_placeholder_prompt(rewritten)
         || is_user_facing_question(rewritten)
     {
@@ -409,8 +416,10 @@ mod tests {
     #[test]
     fn request_keeps_the_original_out_of_the_system_message() {
         let original = "UNIQUE_SELECTED_PROMPT with `file.ts`";
-        let request =
-            build_chat_request("qwen3.5:4b", original, OptimizationMode::Improve, &config());
+        let request = build_chat_request("qwen3.5:4b", original, &config());
+        assert!(request.messages[0].content.contains("Clarify"));
+        assert!(request.messages[0].content.contains("Condense"));
+        assert!(!request.messages[0].content.contains("MODE:"));
         assert!(!request.stream);
         assert!(!request.think);
         assert!((request.options.temperature - 0.2).abs() < 0.0001);
@@ -458,6 +467,56 @@ mod tests {
         .unwrap();
         assert_eq!(unchanged.status, OptimizationStatus::Unchanged);
         assert_eq!(unchanged.rewritten_prompt, original);
+    }
+
+    #[test]
+    fn cosmetic_edits_keep_the_original_text() {
+        let original =
+            "Add a loading spinner to the Submit button while the existing request is in progress.";
+        let capitalized = parse_model_output(
+            &format!(
+                r#"{{"status":"rewritten","rewritten_prompt":{}}}"#,
+                serde_json::to_string(&original.to_uppercase()).unwrap()
+            ),
+            original,
+        )
+        .unwrap();
+        assert_eq!(capitalized.status, OptimizationStatus::Unchanged);
+        assert_eq!(capitalized.rewritten_prompt, original);
+
+        let punctuated = parse_model_output(
+            &format!(
+                r#"{{"status":"unchanged","rewritten_prompt":{}}}"#,
+                serde_json::to_string(&format!("{original}.")).unwrap()
+            ),
+            original,
+        )
+        .unwrap();
+        assert_eq!(punctuated.status, OptimizationStatus::Unchanged);
+        assert_eq!(punctuated.rewritten_prompt, original);
+
+        let clarified = parse_model_output(
+            r#"{"status":"rewritten","rewritten_prompt":"Investigate the login failure after a page refresh. Identify the root cause and fix it."}"#,
+            "fix login it breaks on refresh",
+        )
+        .unwrap();
+        assert_eq!(clarified.status, OptimizationStatus::Rewritten);
+
+        let version = parse_model_output(
+            r#"{"status":"rewritten","rewritten_prompt":"Keep compatibility with Node 2."}"#,
+            "Keep compatibility with Node 22.",
+        )
+        .unwrap();
+        assert_eq!(version.status, OptimizationStatus::Rewritten);
+        assert!(version.rewritten_prompt.contains("Node 2."));
+
+        let path = parse_model_output(
+            r#"{"status":"rewritten","rewritten_prompt":"Update src/auth/sessionts without changing the public API."}"#,
+            "Update src/auth/session.ts without changing the public API.",
+        )
+        .unwrap();
+        assert_eq!(path.status, OptimizationStatus::Rewritten);
+        assert!(path.rewritten_prompt.contains("sessionts"));
     }
 
     #[test]
@@ -554,13 +613,7 @@ mod tests {
             error: None,
         };
         assert!(matches!(
-            interpret_chat_response(
-                "hello",
-                OptimizationMode::Compact,
-                "m",
-                response,
-                Duration::from_millis(5)
-            ),
+            interpret_chat_response("hello", "m", response, Duration::from_millis(5)),
             Err(PsError::TruncatedOutput)
         ));
 
@@ -577,13 +630,7 @@ mod tests {
             error: None,
         };
         assert!(matches!(
-            interpret_chat_response(
-                "hello",
-                OptimizationMode::Improve,
-                "m",
-                empty,
-                Duration::ZERO
-            ),
+            interpret_chat_response("hello", "m", empty, Duration::ZERO),
             Err(PsError::EmptyResponse)
         ));
     }

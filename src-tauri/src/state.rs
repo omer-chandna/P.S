@@ -18,7 +18,6 @@ pub struct PullJob {
 #[serde(rename_all = "camelCase")]
 pub struct OptimizeOutcome {
     pub operation_id: String,
-    pub mode: ps_core::OptimizationMode,
     pub model: String,
     pub prompt_version: String,
     pub status: OptimizationStatus,
@@ -48,8 +47,7 @@ pub struct AppState {
     pub attention: Mutex<Option<Attention>>,
     pub pull: Mutex<Option<PullJob>>,
     pub models: Mutex<Vec<ListedModel>>,
-    pub registered_improve: Mutex<Option<Shortcut>>,
-    pub registered_compact: Mutex<Option<Shortcut>>,
+    pub registered_shortcut: Mutex<Option<Shortcut>>,
 }
 
 impl AppState {
@@ -61,8 +59,7 @@ impl AppState {
             attention: Mutex::new(None),
             pull: Mutex::new(None),
             models: Mutex::new(Vec::new()),
-            registered_improve: Mutex::new(None),
-            registered_compact: Mutex::new(None),
+            registered_shortcut: Mutex::new(None),
         }
     }
 

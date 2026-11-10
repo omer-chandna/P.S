@@ -1,6 +1,5 @@
 use crate::state::AppState;
 use crate::{global, show_main};
-use ps_core::OptimizationMode;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager};
@@ -57,13 +56,18 @@ pub fn set_tooltip(app: &AppHandle, text: &str) {
 fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let settings = app.state::<AppState>().settings_snapshot();
     let pause_label = if settings.shortcuts_paused {
-        "Resume shortcuts"
+        "Resume shortcut"
     } else {
-        "Pause shortcuts"
+        "Pause shortcut"
     };
     let open = MenuItem::with_id(app, "open", "Open P.S.", true, None::<&str>)?;
-    let improve = MenuItem::with_id(app, "improve", "Improve selected text", true, None::<&str>)?;
-    let compact = MenuItem::with_id(app, "compact", "Compact selected text", true, None::<&str>)?;
+    let optimize = MenuItem::with_id(
+        app,
+        "optimize",
+        "Optimize selected text",
+        true,
+        None::<&str>,
+    )?;
     let models = MenuItem::with_id(app, "models", "Change active model", true, None::<&str>)?;
     let pause = MenuItem::with_id(app, "pause", pause_label, true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
@@ -73,8 +77,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         app,
         &[
             &open,
-            &improve,
-            &compact,
+            &optimize,
             &models,
             &pause,
             &settings_item,
@@ -87,8 +90,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
 fn handle_menu(app: &AppHandle, id: &str) {
     match id {
         "open" => show_main(app),
-        "improve" => global::spawn(app.clone(), OptimizationMode::Improve),
-        "compact" => global::spawn(app.clone(), OptimizationMode::Compact),
+        "optimize" => global::spawn(app.clone()),
         "models" => navigate(app, "models"),
         "settings" => navigate(app, "settings"),
         "pause" => toggle_pause(app),

@@ -25,7 +25,7 @@ export function About() {
       </p>
       <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <Fact label="Version" value={info?.version ?? "…"} />
-        <Fact label="Prompt" value={info?.promptVersion ?? "1.2.0"} />
+        <Fact label="Prompt" value={info?.promptVersion ?? "1.3.0"} />
         <Fact label="System" value={info ? `${info.os} ${info.arch}` : "…"} />
         <Fact label="Target" value={info ? (info.supportedPlatform ? "Supported" : "Development") : "…"} />
       </dl>

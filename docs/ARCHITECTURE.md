@@ -14,7 +14,7 @@ src-tauri/               window, tray, shortcuts, clipboard, paste
 ## Optimization path
 
 1. The shell captures the selection and restores the previous clipboard before inference starts.
-2. `optimize_prompt` sends one `/api/chat` request. The system message is the shared prompt plus Improve or Compact. The user message wraps the selection.
+2. `optimize_prompt` sends one `/api/chat` request. The system message is the single optimization prompt. The user message wraps the selection. The model decides whether to clarify, condense, or leave the text unchanged.
 3. The response must match the JSON schema. Contradictory combinations are rejected. A reply that is only a question leaves the selection unchanged.
 4. A rewrite is checked for missing identifiers, paths, URLs, versions, limits, quoted errors, fenced code, and weakened exclusions.
 5. `plan_delivery` chooses replace, leave unchanged, or preview.
@@ -38,7 +38,7 @@ Target identity is the process id captured when the shortcut runs. If that proce
 
 ## Interface
 
-The webview is a manual workspace, model manager, settings, onboarding, and review surface. Global shortcuts are handled in Rust so they work while the window is hidden. Closing the window hides it. The tray or menu bar can optimize, pause shortcuts, open Models or Settings, and quit.
+The webview is a manual workspace, model manager, settings, onboarding, and review surface. One global shortcut is handled in Rust so it works while the window is hidden. Closing the window hides it. The tray or menu bar can optimize the selection, pause the shortcut, open Models or Settings, and quit.
 
 ## What is intentionally absent
 
