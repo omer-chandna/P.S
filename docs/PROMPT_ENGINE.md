@@ -62,7 +62,7 @@ A vague request is still a request when the intended action is already in the te
 | `rewritten` | A meaningful, validated improvement | Paste only when auto-replace is on, preview is off, and the target still matches |
 | `unchanged` | Already sufficient, only cosmetically different, or the model returned only a question | Leave the selection untouched |
 
-If the model labels a result `rewritten` but returns the original text, a cosmetic edit, a question aimed at the user, or a placeholder such as “none”, P.S. treats it as `unchanged` and keeps the original characters. A legacy `needs_clarification` object is not shown. Its rewritten prompt is used when that prompt is a real rewrite. Otherwise the selection stays as it was.
+If the model labels a result `rewritten` but returns the original text, a cosmetic edit, a question aimed at the user, or a placeholder such as “none”, P.S. treats it as `unchanged` and keeps the original characters. A label of `unchanged` also keeps those original characters when the returned text differs. A legacy `needs_clarification` object is not shown. Its rewritten prompt is used when that prompt is a real rewrite. Otherwise the selection stays as it was.
 
 Cosmetic here means case, spacing, wrapping quotes, or a trailing sentence mark. A change to a version, path, command, or other internal punctuation is still a rewrite and still goes through the preservation checks.
 
@@ -114,7 +114,7 @@ Ollama receives a JSON schema through the chat `format` field:
 }
 ```
 
-P.S. rejects a rewrite with an empty prompt, an unchanged result whose text differs from the original in a material way, and any field other than `status`, `rewritten_prompt`, and a leftover `clarification_question`. That leftover field is ignored. A cosmetic difference is kept as the original text instead of being rejected. Truncated JSON is not pasted. Reasoning text is ignored when the content field is empty.
+P.S. rejects a rewrite with an empty prompt, and any field other than `status`, `rewritten_prompt`, and a leftover `clarification_question`. That leftover field is ignored. An `unchanged` status keeps the original characters even when the model returns different text. A cosmetic difference on a `rewritten` status is kept as the original text instead of being rejected. Truncated JSON is not pasted. Reasoning text is ignored when the content field is empty.
 
 ## One inference call
 
